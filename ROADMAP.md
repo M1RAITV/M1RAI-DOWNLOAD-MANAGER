@@ -26,7 +26,8 @@ A planned, modern download manager focused on simplicity, performance, and user 
 ### Phase 0 — Foundation audit
 - [x] Perform a preliminary review of Gopeed as a candidate; see [FOUNDATION-AUDIT.md](docs/FOUNDATION-AUDIT.md).
 - [ ] Complete comparative foundation and dependency licence audit before adoption.
-- [ ] Choose the app framework and download engine based on Android-first delivery and future iOS support.
+- [x] Recommend an independent Flutter app with a focused background-download package; see [FOUNDATION-DECISION.md](docs/FOUNDATION-DECISION.md).
+- [ ] Validate the recommended download engine with an Android proof of concept before adoption.
 - [ ] Document architecture and project conventions.
 
 ### Phase 1 — Android MVP
