@@ -97,9 +97,8 @@ private fun addDownload(context: Context, raw: String, metadata: LinkAnalysisRes
 }
 
 private fun readDownloads(context: Context): List<DownloadItem> {
-    val stored = runCatching {
-        DownloadTaskStore(context).use { it.all().associateBy(StoredDownload::downloadId) }
-    }.getOrDefault(emptyMap())
+    val taskStore = DownloadTaskStore(context)
+    val stored = runCatching { taskStore.all().associateBy(StoredDownload::downloadId) }.getOrDefault(emptyMap())
     val cursor = context.getSystemService(DownloadManager::class.java).query(DownloadManager.Query())
     val result = mutableListOf<DownloadItem>()
     cursor.use {
@@ -122,10 +121,12 @@ private fun readDownloads(context: Context): List<DownloadItem> {
             }
             val percent = if (size > 0) ((bytes * 100) / size).toInt().coerceIn(0, 100) else 0
             val downloadId = it.getLong(id)
+            runCatching { taskStore.updateProgress(downloadId, label, bytes, size) }
             val storedTitle = stored[downloadId]?.fileName
             result += DownloadItem(downloadId, storedTitle ?: (it.getString(title) ?: "Download"), label, bytes, size, percent)
         }
     }
+    taskStore.close()
     return result.sortedByDescending { it.id }
 }
 
