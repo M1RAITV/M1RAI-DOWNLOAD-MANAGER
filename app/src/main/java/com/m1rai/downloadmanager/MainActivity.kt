@@ -79,12 +79,27 @@ private fun addDownload(context: Context, raw: String, metadata: LinkAnalysisRes
         .setAllowedOverRoaming(false)
         .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, filename)
     return runCatching {
-        context.getSystemService(DownloadManager::class.java).enqueue(request)
+        val id = context.getSystemService(DownloadManager::class.java).enqueue(request)
+        DownloadTaskStore(context).use { store ->
+            store.save(
+                StoredDownload(
+                    downloadId = id,
+                    url = value,
+                    fileName = filename,
+                    mimeType = metadata?.mimeType,
+                    expectedBytes = metadata?.contentLength,
+                    createdAt = System.currentTimeMillis()
+                )
+            )
+        }
         null
     }.getOrElse { it.localizedMessage ?: "Download could not be queued." }
 }
 
 private fun readDownloads(context: Context): List<DownloadItem> {
+    val stored = runCatching {
+        DownloadTaskStore(context).use { it.all().associateBy(StoredDownload::downloadId) }
+    }.getOrDefault(emptyMap())
     val cursor = context.getSystemService(DownloadManager::class.java).query(DownloadManager.Query())
     val result = mutableListOf<DownloadItem>()
     cursor.use {
@@ -106,7 +121,7 @@ private fun readDownloads(context: Context): List<DownloadItem> {
                 else -> "Waiting"
             }
             val percent = if (size > 0) ((bytes * 100) / size).toInt().coerceIn(0, 100) else 0
-            result += DownloadItem(it.getLong(id), it.getString(title) ?: "Download", label, bytes, size, percent)
+            val downloadId = it.getLong(id)\n            val storedTitle = stored[downloadId]?.fileName\n            result += DownloadItem(downloadId, storedTitle ?: (it.getString(title) ?: "Download"), label, bytes, size, percent)
         }
     }
     return result.sortedByDescending { it.id }
