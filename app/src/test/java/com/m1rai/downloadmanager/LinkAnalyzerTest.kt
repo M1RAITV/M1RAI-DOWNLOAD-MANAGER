@@ -11,8 +11,8 @@ class LinkAnalyzerTest {
     @Test fun readsMetadataFromHeadResponse() = runBlocking {
         val server = MockWebServer()
         server.enqueue(
-            MockResponse.Builder()
-                .code(200)
+            MockResponse()
+                .setResponseCode(200)
                 .addHeader("Content-Disposition", "attachment; filename=\"manual.pdf\"")
                 .addHeader("Content-Type", "application/pdf")
                 .addHeader("Content-Length", "2048")
@@ -34,13 +34,13 @@ class LinkAnalyzerTest {
 
     @Test fun fallsBackToSingleByteRangeGetWhenHeadIsRejected() = runBlocking {
         val server = MockWebServer()
-        server.enqueue(MockResponse.Builder().code(405).build())
+        server.enqueue(MockResponse().setResponseCode(405))
         server.enqueue(
-            MockResponse.Builder()
-                .code(206)
+            MockResponse()
+                .setResponseCode(206)
                 .addHeader("Content-Range", "bytes 0-0/4096")
                 .addHeader("Content-Type", "application/octet-stream")
-                .body("x")
+                .setBody("x")
                 .build()
         )
         server.start()
