@@ -4,7 +4,7 @@ A planned, modern download manager focused on simplicity, performance, and user 
 
 ## Product direction
 
-- Android first, with iOS considered in the architecture from the beginning.
+- Android only. iOS is explicitly out of scope.
 - Local-first core functionality; no account required for ordinary downloads.
 - Clean, premium interface with dark and light themes.
 - Simple workflow: add or share a link, analyze what is available, choose a supported file or media option, then download.
@@ -26,8 +26,8 @@ A planned, modern download manager focused on simplicity, performance, and user 
 ### Phase 0 — Foundation audit
 - [x] Perform a preliminary review of Gopeed as a candidate; see [FOUNDATION-AUDIT.md](docs/FOUNDATION-AUDIT.md).
 - [ ] Complete comparative foundation and dependency licence audit before adoption.
-- [x] Recommend an independent Flutter app with a focused background-download package; see [FOUNDATION-DECISION.md](docs/FOUNDATION-DECISION.md).
-- [ ] Validate the recommended download engine with an Android proof of concept before adoption.
+- [x] Remove cross-platform/iOS requirements from the project scope.
+- [ ] Validate the native Android download approach with a cloud-built proof of concept.
 - [ ] Document architecture and project conventions.
 
 ### Phase 1 — Android MVP
@@ -48,12 +48,7 @@ A planned, modern download manager focused on simplicity, performance, and user 
 - [ ] Show available formats and quality only when verified by the source.
 - [ ] Test each adapter independently and document limitations.
 
-### Phase 4 — iOS
-- [ ] Implement iOS share-sheet and Files integration.
-- [ ] Adapt download lifecycle and background behavior to iOS restrictions.
-- [ ] Build and test through an appropriate Apple-compatible CI/signing workflow.
-
-### Phase 5 — Release and maintenance
+### Phase 4 — Release and maintenance
 - [ ] Complete security, privacy, reliability, and licence review.
 - [ ] Publish user documentation and contribution guidelines.
 - [ ] Prepare signed release builds and a versioned changelog.
