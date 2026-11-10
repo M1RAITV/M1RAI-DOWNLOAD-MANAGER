@@ -35,7 +35,7 @@ A planned, modern download manager focused on simplicity, performance, and user 
 - [ ] Implement robust direct-link analysis and metadata inspection.
 - [ ] Replace/extend the prototype engine to support robust pause/resume, retry, and detailed task control.
 - [ ] Add durable in-app history and persistent task metadata.
-- [ ] Pass cloud CI build/tests and verify an installable APK artifact.
+- [x] Pass cloud CI build/tests and verify a debug APK artifact was uploaded (not a release build).
 
 ### Phase 2 — Android integration and polish
 - [x] Add initial plain-text Android share-to-app intent support (needs device verification).
@@ -65,8 +65,8 @@ A planned, modern download manager focused on simplicity, performance, and user 
 
 - [x] Public GitHub repository created.
 - [x] GitHub Codex Connector installation/authorization initiated by the repository owner.
-- [ ] Repository write access verified by a successful commit from the connected development tools.
+- [x] Repository write access verified by successful commits from connected development tools.
 - [ ] Foundation and licence audit completed.
-- [ ] Application implementation started.
+- [x] Application implementation started.
 
-This roadmap describes intended work, not features already delivered. Update checkboxes only after evidence-backed verification.
+The successful cloud APK is a debug prototype only. It has not been installed or verified on a physical Android device. This roadmap describes intended work, not features already delivered. Update checkboxes only after evidence-backed verification.
