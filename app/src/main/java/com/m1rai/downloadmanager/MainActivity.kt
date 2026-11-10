@@ -66,7 +66,8 @@ private fun extractSharedUrl(intent: Intent?): String {
 
 private fun addDownload(context: Context, raw: String): String? {
     val value = raw.trim()
-    val uri = DownloadLinkRules.parseHttpUrl(value) ?: return "Enter a valid direct HTTP or HTTPS file link."
+    if (!DownloadLinkRules.isValidHttpUrl(value)) return "Enter a valid direct HTTP or HTTPS file link."
+    val uri = Uri.parse(value)
     val filename = URLUtil.guessFileName(value, null, null)
     val request = DownloadManager.Request(uri)
         .setTitle(filename)
