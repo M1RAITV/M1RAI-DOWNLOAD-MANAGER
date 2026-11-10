@@ -32,7 +32,7 @@ A planned, modern download manager focused on simplicity, performance, and user 
 
 ### Phase 1 — Android MVP
 - [x] Create the initial Kotlin/Jetpack Compose Android shell and direct-link download prototype (early prototype; not release-ready).
-- [ ] Implement robust direct-link analysis and metadata inspection.
+- [x] Implement an isolated HTTP metadata analyzer with HEAD and one-byte range fallback (UI integration and broader source coverage remain pending).
 - [ ] Replace/extend the prototype engine to support robust pause/resume, retry, and detailed task control.
 - [ ] Add durable in-app history and persistent task metadata.
 - [x] Pass cloud CI build/tests and verify a debug APK artifact was uploaded (not a release build).
