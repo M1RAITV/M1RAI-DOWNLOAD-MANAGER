@@ -24,23 +24,43 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import java.util.Locale
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 data class DownloadItem(val id: Long, val title: String, val status: String, val done: Long, val total: Long, val percent: Int)
 
 class MainActivity : ComponentActivity() {
+    private var incomingSharedUrl by mutableStateOf("")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val shared = if (intent?.action == Intent.ACTION_SEND) intent.getStringExtra(Intent.EXTRA_TEXT).orEmpty() else intent?.dataString.orEmpty()
+        incomingSharedUrl = extractSharedUrl(intent)
         setContent {
             M1Theme {
                 DownloadHome(
-                    sharedUrl = shared,
+                    sharedUrl = incomingSharedUrl,
                     add = { addDownload(this, it) },
                     cancel = { getSystemService(DownloadManager::class.java).remove(it) },
                     refresh = { readDownloads(this) }
                 )
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val shared = extractSharedUrl(intent)
+        if (shared.isNotBlank()) incomingSharedUrl = shared
+    }
+}
+
+private fun extractSharedUrl(intent: Intent?): String {
+    if (intent == null) return ""
+    return when (intent.action) {
+        Intent.ACTION_SEND -> intent.getStringExtra(Intent.EXTRA_TEXT).orEmpty().trim()
+        Intent.ACTION_VIEW -> intent.dataString.orEmpty().trim()
+        else -> ""
     }
 }
 
