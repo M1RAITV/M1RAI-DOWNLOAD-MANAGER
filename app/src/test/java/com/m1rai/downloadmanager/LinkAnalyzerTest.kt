@@ -17,7 +17,7 @@ class LinkAnalyzerTest {
                 .addHeader("Content-Type", "application/pdf")
                 .addHeader("Content-Length", "2048")
                 .addHeader("Accept-Ranges", "bytes")
-                .build()
+                
         )
         server.start()
         try {
@@ -41,7 +41,7 @@ class LinkAnalyzerTest {
                 .addHeader("Content-Range", "bytes 0-0/4096")
                 .addHeader("Content-Type", "application/octet-stream")
                 .setBody("x")
-                .build()
+                
         )
         server.start()
         try {
