@@ -1,61 +1,70 @@
 # Foundation Decision — M1RAI Download Manager
 
 Date: 2026-11-10
-Status: Recommended direction; validate through a small Android proof of concept before treating it as final.
+Status: Android-only direction selected. Implementation choice remains subject to a working proof of concept.
 
-## Decision
+## Product platform
 
-Build M1RAI as its own Flutter application. Do not fork or embed the full Gopeed application as the product foundation.
+M1RAI Download Manager will be built for **Android only**.
 
-For the first direct-download engine, evaluate the Flutter package `background_downloader` (currently published as version 9.6.6 at the time of review). It supports Android and iOS, background transfers, progress/status updates, queues, pause/resume/cancel, and persistence features. Its published package metadata identifies a permissive BSD-3-Clause / MIT licence.
+- iOS is out of scope.
+- Do not spend time preserving iOS compatibility or selecting libraries for cross-platform support.
+- Prioritize Android-native download behavior, sharing, notifications, storage, and background execution.
+- The maintainer works from an Android phone and GitHub; use cloud builds and phone-compatible workflows. Do not assume a desktop development environment.
 
-- Package: https://pub.dev/packages/background_downloader
-- Changelog: https://pub.dev/packages/background_downloader/changelog
-- Documentation: https://github.com/781flyingdutchman/background_downloader
+## Recommended app foundation
 
-## Why this is the better fit
+Use **Kotlin + Jetpack Compose** for the Android application.
 
-1. M1RAI gets its own UI, product identity, and project structure rather than inheriting Gopeed's existing application.
-2. The package is focused on background file transfers, which is the correct first engine for ordinary direct links.
-3. Its permissive licence is a simpler fit for an open-source app that may later be distributed through app stores, subject to dependency and licence verification.
-4. It supports Android and iOS, while respecting each platform's background execution limits.
-5. We can add link analyzers and source adapters as separate modules later, without making the core download engine responsible for extracting every website.
+Why:
+1. Android-only scope makes a native Android stack the simplest direct fit.
+2. Kotlin and Android's native APIs give direct control over foreground download services, notifications, Android share intents, storage, and system lifecycle behavior.
+3. Jetpack Compose provides a modern native UI without introducing a cross-platform layer we no longer need.
+4. We can keep the app modular: UI, download engine, link analysis, queue/state, persistence, and source adapters.
 
-## Why not adopt full Gopeed now
+## Download-engine approach
 
-Gopeed is technically capable and remains a useful reference. However:
-- Its repository is GPL-3.0, which creates source and licence obligations for covered distributed derivatives.
-- Its current 2.0 line is publicly labelled beta.
-- Its published iOS installation guidance says the IPA must be self-signed/installed outside the App Store because BitTorrent-related apps are not accepted there.
-- M1RAI does not need to inherit BitTorrent or Gopeed's full feature set for the first release.
+Do not adopt Gopeed as the product base. It remains a useful reference, but it brings a full separate application, GPL-3.0 obligations for covered derivatives, and features we do not need for the Android-first MVP.
 
-Gopeed may still be studied for ideas, but no Gopeed source code is being copied into M1RAI.
+Do not adopt the earlier Flutter `background_downloader` recommendation either: Flutter is no longer needed for an Android-only product.
 
-## Important limits
+For the native Android MVP, first evaluate Android's platform download APIs and a focused Kotlin/Java HTTP client such as OkHttp for cases requiring more control. Use WorkManager for deferrable/retryable work and a foreground service with a user-visible notification for long-running user-initiated transfers where current Android rules require it. The exact combination must be proven in a small build before finalizing.
 
-- `background_downloader` is a transfer engine, not a universal website video extractor.
-- Pause/resume depends on server support and platform behavior.
-- Android and iOS impose background execution limits; no app can guarantee every transfer will continue under every OS condition.
-- Website-specific media extraction must be added separately and only where permitted.
-- All direct and transitive dependency licences must be checked before release.
+## First proof of concept
 
-## Next implementation gate
+Create a minimal Android app that:
+- accepts a direct HTTPS file URL;
+- downloads a file to an appropriate user-visible location;
+- displays progress and transfer state;
+- supports pause/resume where the server supports HTTP range requests;
+- supports cancel and retry;
+- survives app process death/restart to the extent supported by Android's lifecycle and chosen service design;
+- uses a visible notification for long-running transfers as required by Android;
+- verifies the downloaded file.
 
-Create a minimal Android proof of concept using Flutter + background_downloader:
-- enqueue a direct HTTPS file;
-- show progress and speed where available;
-- pause/resume when supported;
-- cancel and retry;
-- persist task state across app restart;
-- verify the resulting file and integrity.
+Build using GitHub Actions or another cloud Android build pipeline. Test with automated unit/instrumentation tests and, where available, a cloud Android emulator/device. Do not claim real-device verification unless it actually happened.
 
-Do not mark the engine adopted until this proof of concept is built and tested. The developer should not need to run local desktop commands; use a GitHub/cloud build workflow compatible with a phone-only maintainer.
+## Product principles
 
-## Sources checked
+- No account required for core downloads.
+- No mandatory ads.
+- Dark and light themes.
+- Keep user interface simple: add/share link, inspect available information, download.
+- Source code should be modular and understandable for developers.
+- Website/media adapters must be separate from the direct-download engine and used only where permitted.
+- No DRM, paywall, private-access, authentication, or platform-protection bypass.
 
-- Gopeed repository and README: https://github.com/GopeedLab/gopeed
-- Gopeed iOS installation guidance: https://gopeed.com/docs/install
-- background_downloader package: https://pub.dev/packages/background_downloader
-- background_downloader changelog: https://pub.dev/packages/background_downloader/changelog
+## Licence and dependency gate
 
-This is an engineering recommendation, not legal advice. Verify exact dependency versions and licence files at the time of implementation and release.
+Before shipping, inspect the exact licence of every direct and transitive dependency and retain required notices. This is an engineering recommendation, not legal advice.
+
+## Sources
+
+- Android developer documentation: https://developer.android.com/
+- Jetpack Compose: https://developer.android.com/compose
+- Android background work: https://developer.android.com/develop/background-work
+- Android foreground services: https://developer.android.com/develop/background-work/services/foreground-services
+- OkHttp: https://github.com/square/okhttp
+- Gopeed reference: https://github.com/GopeedLab/gopeed
+
+This is the selected Android-only direction. Do not reintroduce iOS or Flutter unless the product scope changes.
