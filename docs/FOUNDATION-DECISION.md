@@ -1,70 +1,65 @@
 # Foundation Decision — M1RAI Download Manager
 
 Date: 2026-11-10
-Status: Android-only direction selected. Implementation choice remains subject to a working proof of concept.
+Status: Android-only architecture selected; first prototype committed. The engine choice is provisional until feature and reliability tests pass.
 
 ## Product platform
 
-M1RAI Download Manager will be built for **Android only**.
+M1RAI Download Manager is Android only. iOS is out of scope. The maintainer uses a phone and GitHub, so cloud builds and phone-compatible repository workflows are required.
 
-- iOS is out of scope.
-- Do not spend time preserving iOS compatibility or selecting libraries for cross-platform support.
-- Prioritize Android-native download behavior, sharing, notifications, storage, and background execution.
-- The maintainer works from an Android phone and GitHub; use cloud builds and phone-compatible workflows. Do not assume a desktop development environment.
+## App foundation
 
-## Recommended app foundation
+Use Kotlin and Jetpack Compose for the native Android application. This gives direct access to Android sharing, notifications, storage, and platform download APIs without a cross-platform layer.
 
-Use **Kotlin + Jetpack Compose** for the Android application.
+## Download-engine decision
 
-Why:
-1. Android-only scope makes a native Android stack the simplest direct fit.
-2. Kotlin and Android's native APIs give direct control over foreground download services, notifications, Android share intents, storage, and system lifecycle behavior.
-3. Jetpack Compose provides a modern native UI without introducing a cross-platform layer we no longer need.
-4. We can keep the app modular: UI, download engine, link analysis, queue/state, persistence, and source adapters.
+The first prototype uses Android's system DownloadManager for direct HTTP/HTTPS downloads. Android's API handles long-running HTTP transfers in the background, retries across failures/connectivity changes, and reports progress/status.
 
-## Download-engine approach
+This is a deliberate MVP choice, not the final feature-complete engine. The platform DownloadManager does not provide a general pause/resume control to third-party apps. If true user-controlled pause/resume, segmented downloads, per-connection speed, and richer retry behavior are required, evaluate a focused Kotlin transfer engine based on OkHttp and Android's user-initiated data transfer APIs. Android 14+ provides user-initiated data transfer jobs for user-started network transfers; current Play guidance recommends them for this use case. Do not use a dataSync foreground service without addressing Android 15+ time limits and Play policy.
 
-Do not adopt Gopeed as the product base. It remains a useful reference, but it brings a full separate application, GPL-3.0 obligations for covered derivatives, and features we do not need for the Android-first MVP.
+## Current implementation
 
-Do not adopt the earlier Flutter `background_downloader` recommendation either: Flutter is no longer needed for an Android-only product.
+- Kotlin/Jetpack Compose application module.
+- Direct HTTP/HTTPS URL enqueue via Android DownloadManager.
+- System download notifications and public Downloads destination.
+- Download list with status and progress polling.
+- Plain-text Android share intent.
+- GitHub Actions cloud build workflow.
+- MIT project licence and initial contributor/privacy/security documentation.
 
-For the native Android MVP, first evaluate Android's platform download APIs and a focused Kotlin/Java HTTP client such as OkHttp for cases requiring more control. Use WorkManager for deferrable/retryable work and a foreground service with a user-visible notification for long-running user-initiated transfers where current Android rules require it. The exact combination must be proven in a small build before finalizing.
+## Known gaps
 
-## First proof of concept
+- The current code is an early prototype and has not yet been built or tested by CI.
+- No general pause/resume controls.
+- No detailed error explanation, speed, or ETA.
+- No robust in-app database/history yet.
+- No website-specific media extraction.
+- No signed release or Play Store submission.
+- No real-device verification has been performed.
 
-Create a minimal Android app that:
-- accepts a direct HTTPS file URL;
-- downloads a file to an appropriate user-visible location;
-- displays progress and transfer state;
-- supports pause/resume where the server supports HTTP range requests;
-- supports cancel and retry;
-- survives app process death/restart to the extent supported by Android's lifecycle and chosen service design;
-- uses a visible notification for long-running transfers as required by Android;
-- verifies the downloaded file.
+## Build and Play compliance
 
-Build using GitHub Actions or another cloud Android build pipeline. Test with automated unit/instrumentation tests and, where available, a cloud Android emulator/device. Do not claim real-device verification unless it actually happened.
+Google Play submissions from 31 August 2026 must target Android 16 / API 36 or higher. The current project is configured for target API 36. Play also requires a privacy policy and accurate Data safety declarations. Intellectual-property policy prohibits apps that encourage unauthorized downloading of copyrighted works.
 
-## Product principles
+## Licence
 
-- No account required for core downloads.
-- No mandatory ads.
-- Dark and light themes.
-- Keep user interface simple: add/share link, inspect available information, download.
-- Source code should be modular and understandable for developers.
-- Website/media adapters must be separate from the direct-download engine and used only where permitted.
-- No DRM, paywall, private-access, authentication, or platform-protection bypass.
+The project is released under MIT. This allows broad use, modification, redistribution, and commercial reuse, provided the copyright and licence notice are retained. Third-party dependencies keep their own licences; those must be checked before release.
 
-## Licence and dependency gate
+## Next engineering gate
 
-Before shipping, inspect the exact licence of every direct and transitive dependency and retain required notices. This is an engineering recommendation, not legal advice.
+1. Run the GitHub Actions build and fix all build errors.
+2. Add automated tests for URL validation, filename handling, download states, and error paths.
+3. Verify the APK artifact can be downloaded from the workflow.
+4. Improve download controls with an Android-compliant user-initiated transfer implementation.
+5. Only then expand into advanced link analysis and permitted source adapters.
 
-## Sources
+## References
 
-- Android developer documentation: https://developer.android.com/
-- Jetpack Compose: https://developer.android.com/compose
-- Android background work: https://developer.android.com/develop/background-work
-- Android foreground services: https://developer.android.com/develop/background-work/services/foreground-services
-- OkHttp: https://github.com/square/okhttp
-- Gopeed reference: https://github.com/GopeedLab/gopeed
+- Android DownloadManager: https://developer.android.com/reference/android/app/DownloadManager
+- Android user-initiated data transfer: https://developer.android.com/develop/background-work/background-tasks/data-transfer-options
+- Android foreground service changes: https://developer.android.com/develop/background-work/services/fgs/changes
+- Google Play target API requirements: https://developer.android.com/google/play/requirements/target-sdk
+- Google Play intellectual property policy: https://support.google.com/googleplay/android-developer/answer/9888072
+- Google Play privacy policy and review preparation: https://support.google.com/googleplay/android-developer/answer/9859455
 
-This is the selected Android-only direction. Do not reintroduce iOS or Flutter unless the product scope changes.
+No release or device verification is claimed until evidence is available.
