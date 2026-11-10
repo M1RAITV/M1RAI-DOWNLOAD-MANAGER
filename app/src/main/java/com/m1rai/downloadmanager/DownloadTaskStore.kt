@@ -20,7 +20,7 @@ internal data class StoredDownload(
  * the future app-controlled engine.
  */
 internal class DownloadTaskStore(context: Context) :
-    SQLiteOpenHelper(context.applicationContext, "m1rai_downloads.db", null, 1) {
+    SQLiteOpenHelper(context.applicationContext, "m1rai_downloads.db", null, 2) {
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(
@@ -38,7 +38,20 @@ internal class DownloadTaskStore(context: Context) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // Schema changes must use explicit, non-destructive migrations.
+        if (oldVersion < 2) {
+            db.execSQL("ALTER TABLE downloads ADD COLUMN transfer_status TEXT NOT NULL DEFAULT 'Queued'")
+            db.execSQL("ALTER TABLE downloads ADD COLUMN downloaded_bytes INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE downloads ADD COLUMN total_bytes INTEGER")
+        }
+    }
+
+    fun updateProgress(downloadId: Long, status: String, downloadedBytes: Long, totalBytes: Long) {
+        val values = ContentValues().apply {
+            put("transfer_status", status)
+            put("downloaded_bytes", downloadedBytes.coerceAtLeast(0))
+            if (totalBytes < 0) putNull("total_bytes") else put("total_bytes", totalBytes)
+        }
+        writableDatabase.update("downloads", values, "download_id = ?", arrayOf(downloadId.toString()))
     }
 
     fun save(item: StoredDownload) {
