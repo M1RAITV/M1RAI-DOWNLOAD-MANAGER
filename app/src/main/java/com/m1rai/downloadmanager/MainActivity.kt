@@ -121,7 +121,9 @@ private fun readDownloads(context: Context): List<DownloadItem> {
                 else -> "Waiting"
             }
             val percent = if (size > 0) ((bytes * 100) / size).toInt().coerceIn(0, 100) else 0
-            val downloadId = it.getLong(id)\n            val storedTitle = stored[downloadId]?.fileName\n            result += DownloadItem(downloadId, storedTitle ?: (it.getString(title) ?: "Download"), label, bytes, size, percent)
+            val downloadId = it.getLong(id)
+            val storedTitle = stored[downloadId]?.fileName
+            result += DownloadItem(downloadId, storedTitle ?: (it.getString(title) ?: "Download"), label, bytes, size, percent)
         }
     }
     return result.sortedByDescending { it.id }
