@@ -9,6 +9,11 @@ on:
 permissions:
   contents: read
 
+# Keep only the newest push build for main; stale queued runs waste CI capacity.
+concurrency:
+  group: android-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
