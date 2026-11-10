@@ -24,8 +24,8 @@ A planned, modern download manager focused on simplicity, performance, and user 
 ## Delivery roadmap
 
 ### Phase 0 — Foundation audit
-- [ ] Review candidate foundations and their current maintenance status.
-- [ ] Verify licences and obligations for every dependency before adoption.
+- [x] Perform a preliminary review of Gopeed as a candidate; see [FOUNDATION-AUDIT.md](docs/FOUNDATION-AUDIT.md).
+- [ ] Complete comparative foundation and dependency licence audit before adoption.
 - [ ] Choose the app framework and download engine based on Android-first delivery and future iOS support.
 - [ ] Document architecture and project conventions.
 
