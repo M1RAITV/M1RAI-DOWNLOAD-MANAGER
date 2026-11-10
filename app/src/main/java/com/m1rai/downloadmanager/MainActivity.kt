@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.Locale
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -40,6 +41,7 @@ class MainActivity : ComponentActivity() {
                 DownloadHome(
                     sharedUrl = incomingSharedUrl,
                     add = { addDownload(this, it) },
+                    analyze = { LinkAnalyzer().analyze(it) },
                     cancel = { getSystemService(DownloadManager::class.java).remove(it) },
                     refresh = { readDownloads(this) }
                 )
@@ -122,10 +124,13 @@ private fun sizeText(bytes: Long): String {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DownloadHome(sharedUrl: String, add: (String) -> String?, cancel: (Long) -> Unit, refresh: () -> List<DownloadItem>) {
+private fun DownloadHome(sharedUrl: String, add: (String) -> String?, analyze: suspend (String) -> Result<LinkAnalysisResult>, cancel: (Long) -> Unit, refresh: () -> List<DownloadItem>) {
     var url by remember { mutableStateOf(sharedUrl) }
     var message by remember { mutableStateOf<String?>(null) }
     var downloads by remember { mutableStateOf(emptyList<DownloadItem>()) }
+    var analysis by remember { mutableStateOf<LinkAnalysisResult?>(null) }
+    var analyzing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     LaunchedEffect(sharedUrl) {
         if (sharedUrl.isNotBlank()) {
             url = sharedUrl
@@ -144,10 +149,42 @@ private fun DownloadHome(sharedUrl: String, add: (String) -> String?, cancel: (L
                 Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text("Your downloads. Under your control.", style = MaterialTheme.typography.titleLarge)
                     Text("Paste a direct file link or share one from another app.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    OutlinedTextField(value = url, onValueChange = { url = it; message = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Download link") }, placeholder = { Text("https://example.com/file.zip") }, singleLine = true)
-                    Button(onClick = { message = add(url); if (message == null) url = "" }, enabled = url.isNotBlank(), modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(value = url, onValueChange = { url = it; message = null; analysis = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Download link") }, placeholder = { Text("https://example.com/file.zip") }, singleLine = true)
+                    Button(
+                        onClick = {
+                            if (analysis == null) {
+                                scope.launch {
+                                    analyzing = true
+                                    message = null
+                                    analysis = null
+                                    val result = analyze(url)
+                                    result.onFailure { message = it.localizedMessage ?: "Could not analyze this link." }
+                                        .onSuccess { metadata ->
+                                            if (metadata.httpStatus in 200..299 || metadata.httpStatus == 206) analysis = metadata
+                                            else message = "The server returned HTTP ${metadata.httpStatus}. Check the link and try again."
+                                        }
+                                    analyzing = false
+                                }
+                            } else {
+                                message = add(url)
+                                if (message == null) { url = ""; analysis = null }
+                            }
+                        },
+                        enabled = url.isNotBlank() && !analyzing,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Icon(Icons.Default.Add, contentDescription = null)
-                        Text("  Add download")
+                        Text(if (analyzing) "  Analyzing…" else if (analysis == null) "  Analyze link" else "  Start download")
+                    }
+                    analysis?.let { info ->
+                        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                Text(info.fileName, style = MaterialTheme.typography.titleMedium)
+                                Text(info.mimeType ?: "File type not provided", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(info.contentLength?.let { sizeText(it) } ?: "File size unknown")
+                                Text(if (info.supportsRanges) "Resume support reported by server" else "Resume support not confirmed", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
                     }
                     message?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 }
