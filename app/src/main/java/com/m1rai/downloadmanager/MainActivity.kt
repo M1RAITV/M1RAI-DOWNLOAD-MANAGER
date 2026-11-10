@@ -43,6 +43,7 @@ class MainActivity : ComponentActivity() {
                     add = { value, metadata -> addDownload(this, value, metadata) },
                     analyze = { LinkAnalyzer().analyze(it) },
                     cancel = { getSystemService(DownloadManager::class.java).remove(it) },
+                    retry = { retryDownload(this, it) },
                     refresh = { readDownloads(this) }
                 )
             }
@@ -96,6 +97,20 @@ private fun addDownload(context: Context, raw: String, metadata: LinkAnalysisRes
     }.getOrElse { it.localizedMessage ?: "Download could not be queued." }
 }
 
+private fun retryDownload(context: Context, downloadId: Long): String? {
+    val stored = runCatching {
+        DownloadTaskStore(context).use { it.find(downloadId) }
+    }.getOrNull() ?: return "The original download details are unavailable."
+    val metadata = LinkAnalysisResult(
+        fileName = stored.fileName,
+        mimeType = stored.mimeType,
+        contentLength = stored.expectedBytes,
+        supportsRanges = false,
+        httpStatus = 200
+    )
+    return addDownload(context, stored.url, metadata)
+}
+
 private fun readDownloads(context: Context): List<DownloadItem> {
     val taskStore = DownloadTaskStore(context)
     val stored = runCatching { taskStore.all().associateBy(StoredDownload::downloadId) }.getOrDefault(emptyMap())
@@ -142,7 +157,7 @@ private fun sizeText(bytes: Long): String {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DownloadHome(sharedUrl: String, add: (String, LinkAnalysisResult?) -> String?, analyze: suspend (String) -> Result<LinkAnalysisResult>, cancel: (Long) -> Unit, refresh: () -> List<DownloadItem>) {
+private fun DownloadHome(sharedUrl: String, add: (String, LinkAnalysisResult?) -> String?, analyze: suspend (String) -> Result<LinkAnalysisResult>, cancel: (Long) -> Unit, retry: (Long) -> String?, refresh: () -> List<DownloadItem>) {
     var url by remember { mutableStateOf(sharedUrl) }
     var message by remember { mutableStateOf<String?>(null) }
     var downloads by remember { mutableStateOf(emptyList<DownloadItem>()) }
@@ -231,10 +246,17 @@ private fun DownloadHome(sharedUrl: String, add: (String, LinkAnalysisResult?) -
                                 }
                                 LinearProgressIndicator(progress = { item.percent / 100f }, modifier = Modifier.fillMaxWidth())
                                 Text("${sizeText(item.done)} / ${sizeText(item.total)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                if (item.status != "Completed") {
-                                    OutlinedButton(onClick = { cancel(item.id) }) {
-                                        Icon(Icons.Default.Delete, contentDescription = null)
-                                        Text("  Cancel")
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    if (item.status == "Failed") {
+                                        OutlinedButton(onClick = { message = retry(item.id) }) {
+                                            Text("Retry")
+                                        }
+                                    }
+                                    if (item.status == "Queued" || item.status == "Downloading" || item.status == "Paused") {
+                                        OutlinedButton(onClick = { cancel(item.id) }) {
+                                            Icon(Icons.Default.Delete, contentDescription = null)
+                                            Text("  Cancel")
+                                        }
                                     }
                                 }
                             }
