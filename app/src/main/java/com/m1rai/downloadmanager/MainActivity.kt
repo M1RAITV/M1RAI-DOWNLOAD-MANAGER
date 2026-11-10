@@ -126,6 +126,12 @@ private fun DownloadHome(sharedUrl: String, add: (String) -> String?, cancel: (L
     var url by remember { mutableStateOf(sharedUrl) }
     var message by remember { mutableStateOf<String?>(null) }
     var downloads by remember { mutableStateOf(emptyList<DownloadItem>()) }
+    LaunchedEffect(sharedUrl) {
+        if (sharedUrl.isNotBlank()) {
+            url = sharedUrl
+            message = null
+        }
+    }
     LaunchedEffect(Unit) {
         while (true) {
             downloads = runCatching { refresh() }.getOrDefault(emptyList())
