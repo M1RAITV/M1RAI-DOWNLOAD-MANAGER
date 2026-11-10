@@ -35,7 +35,7 @@ A planned, modern download manager focused on simplicity, performance, and user 
 - [x] Implement an HTTP metadata analyzer with HEAD and one-byte range fallback.
 - [x] Connect link analysis to the app screen with filename, MIME type, size, and range-support details (cloud CI and device verification pending).
 - [ ] Replace/extend the prototype engine to support robust pause/resume, retry, and detailed task control.
-- [ ] Add durable in-app history and persistent task metadata.
+- [x] Add a local SQLite store for original URLs and analyzed file metadata when downloads are queued (engine status/history integration remains pending).
 - [x] Pass cloud CI build/tests and verify a debug APK artifact was uploaded (not a release build).
 
 ### Phase 2 — Android integration and polish
