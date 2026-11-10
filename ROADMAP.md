@@ -31,14 +31,14 @@ A planned, modern download manager focused on simplicity, performance, and user 
 - [ ] Document architecture and project conventions.
 
 ### Phase 1 — Android MVP
-- [ ] Create the application shell and navigation.
-- [ ] Implement direct-link analysis for ordinary downloadable files.
-- [ ] Implement the download engine, queue, progress, pause/resume, cancel, and retry.
-- [ ] Add completed/failed history and local persistence.
-- [ ] Build and test an installable Android APK.
+- [x] Create the initial Kotlin/Jetpack Compose Android shell and direct-link download prototype (early prototype; not release-ready).
+- [ ] Implement robust direct-link analysis and metadata inspection.
+- [ ] Replace/extend the prototype engine to support robust pause/resume, retry, and detailed task control.
+- [ ] Add durable in-app history and persistent task metadata.
+- [ ] Pass cloud CI build/tests and verify an installable APK artifact.
 
 ### Phase 2 — Android integration and polish
-- [ ] Add Android share-to-app support.
+- [x] Add initial plain-text Android share-to-app intent support (needs device verification).
 - [ ] Improve background-download reliability and notifications.
 - [ ] Deliver polished dark and light themes and accessible states.
 - [ ] Test large files, interrupted connections, and server range support.
@@ -49,9 +49,9 @@ A planned, modern download manager focused on simplicity, performance, and user 
 - [ ] Test each adapter independently and document limitations.
 
 ### Phase 4 — Release and maintenance
-- [ ] Complete security, privacy, reliability, and licence review.
-- [ ] Publish user documentation and contribution guidelines.
-- [ ] Prepare signed release builds and a versioned changelog.
+- [ ] Complete security, privacy, reliability, and dependency licence review.
+- [x] Add initial README, privacy disclosure, security policy, and contribution guide.
+- [ ] Prepare signed release builds, store listing, and a versioned changelog.
 
 ## Principles and limitations
 
