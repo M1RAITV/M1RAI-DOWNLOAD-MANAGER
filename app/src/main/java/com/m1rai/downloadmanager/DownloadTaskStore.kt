@@ -31,7 +31,10 @@ internal class DownloadTaskStore(context: Context) :
                 file_name TEXT NOT NULL,
                 mime_type TEXT,
                 expected_bytes INTEGER,
-                created_at INTEGER NOT NULL
+                created_at INTEGER NOT NULL,
+                transfer_status TEXT NOT NULL DEFAULT 'Queued',
+                downloaded_bytes INTEGER NOT NULL DEFAULT 0,
+                total_bytes INTEGER
             )
             """.trimIndent()
         )
