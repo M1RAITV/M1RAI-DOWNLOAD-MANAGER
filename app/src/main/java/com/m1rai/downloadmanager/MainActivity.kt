@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
             M1Theme {
                 DownloadHome(
                     sharedUrl = incomingSharedUrl,
-                    add = { addDownload(this, it) },
+                    add = { value, metadata -> addDownload(this, value, metadata) },
                     analyze = { LinkAnalyzer().analyze(it) },
                     cancel = { getSystemService(DownloadManager::class.java).remove(it) },
                     refresh = { readDownloads(this) }
@@ -66,11 +66,11 @@ private fun extractSharedUrl(intent: Intent?): String {
     }
 }
 
-private fun addDownload(context: Context, raw: String): String? {
+private fun addDownload(context: Context, raw: String, metadata: LinkAnalysisResult?): String? {
     val value = raw.trim()
     if (!DownloadLinkRules.isValidHttpUrl(value)) return "Enter a valid direct HTTP or HTTPS file link."
     val uri = Uri.parse(value)
-    val filename = URLUtil.guessFileName(value, null, null)
+    val filename = metadata?.fileName?.takeIf { it.isNotBlank() } ?: URLUtil.guessFileName(value, null, null)
     val request = DownloadManager.Request(uri)
         .setTitle(filename)
         .setDescription("M1RAI Download Manager")
@@ -124,7 +124,7 @@ private fun sizeText(bytes: Long): String {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DownloadHome(sharedUrl: String, add: (String) -> String?, analyze: suspend (String) -> Result<LinkAnalysisResult>, cancel: (Long) -> Unit, refresh: () -> List<DownloadItem>) {
+private fun DownloadHome(sharedUrl: String, add: (String, LinkAnalysisResult?) -> String?, analyze: suspend (String) -> Result<LinkAnalysisResult>, cancel: (Long) -> Unit, refresh: () -> List<DownloadItem>) {
     var url by remember { mutableStateOf(sharedUrl) }
     var message by remember { mutableStateOf<String?>(null) }
     var downloads by remember { mutableStateOf(emptyList<DownloadItem>()) }
@@ -166,7 +166,7 @@ private fun DownloadHome(sharedUrl: String, add: (String) -> String?, analyze: s
                                     analyzing = false
                                 }
                             } else {
-                                message = add(url)
+                                message = add(url, analysis)
                                 if (message == null) { url = ""; analysis = null }
                             }
                         },
