@@ -27,12 +27,13 @@ A planned, modern download manager focused on simplicity, performance, and user 
 - [x] Perform a preliminary review of Gopeed as a candidate; see [FOUNDATION-AUDIT.md](docs/FOUNDATION-AUDIT.md).
 - [ ] Complete comparative foundation and dependency licence audit before adoption.
 - [x] Remove cross-platform/iOS requirements from the project scope.
-- [ ] Validate the native Android download approach with a cloud-built proof of concept.
+- [x] Validate the initial native Android shell and direct-download prototype with a cloud-built proof of concept (system DownloadManager only; advanced controls remain pending).
 - [ ] Document architecture and project conventions.
 
 ### Phase 1 — Android MVP
 - [x] Create the initial Kotlin/Jetpack Compose Android shell and direct-link download prototype (early prototype; not release-ready).
-- [x] Implement an isolated HTTP metadata analyzer with HEAD and one-byte range fallback (UI integration and broader source coverage remain pending).
+- [x] Implement an HTTP metadata analyzer with HEAD and one-byte range fallback.
+- [x] Connect link analysis to the app screen with filename, MIME type, size, and range-support details (cloud CI and device verification pending).
 - [ ] Replace/extend the prototype engine to support robust pause/resume, retry, and detailed task control.
 - [ ] Add durable in-app history and persistent task metadata.
 - [x] Pass cloud CI build/tests and verify a debug APK artifact was uploaded (not a release build).
