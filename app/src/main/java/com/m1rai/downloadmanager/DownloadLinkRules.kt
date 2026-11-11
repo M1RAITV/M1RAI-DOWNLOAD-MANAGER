@@ -3,7 +3,7 @@ package com.m1rai.downloadmanager
 import java.net.URI
 
 internal object DownloadLinkRules {
-    private val sharedUrlPattern = Regex("""(?i)https?://[^\\s<>\\"']+""")
+    private val sharedUrlPattern = Regex("""(?i)https?://[^\s<>"']+""")
 
     fun isValidHttpUrl(raw: String): Boolean {
         val value = raw.trim()
