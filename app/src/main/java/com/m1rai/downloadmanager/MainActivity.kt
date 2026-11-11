@@ -79,7 +79,7 @@ private fun addDownload(context: Context, raw: String, metadata: LinkAnalysisRes
     val filename = metadata?.fileName?.takeIf { it.isNotBlank() } ?: URLUtil.guessFileName(value, null, null)
     val request = DownloadManager.Request(uri)
         .setTitle(filename)
-        .setDescription("M1RAI Download Manager")
+        .setDescription("M1RAI Downloader")
         .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         .setAllowedOverMetered(true)
         .setAllowedOverRoaming(false)
@@ -209,12 +209,28 @@ private fun DownloadHome(sharedUrl: String, add: (String, LinkAnalysisResult?) -
             delay(1000)
         }
     }
-    Scaffold(topBar = { TopAppBar(title = { Text("M1RAI", style = MaterialTheme.typography.headlineSmall) }) }) { padding ->
+    Scaffold(
+        containerColor = Color(0xFF080B13),
+        topBar = {
+            TopAppBar(
+                title = {
+                    Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                        Text("M1RAI Downloader", style = MaterialTheme.typography.titleLarge)
+                        Text("SMART DOWNLOAD EXPERIENCE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF0B1020),
+                    titleContentColor = Color(0xFFF4F7FF)
+                )
+            )
+        }
+    ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                 Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("Your downloads. Under your control.", style = MaterialTheme.typography.titleLarge)
-                    Text("Paste a direct file link or share one from another app.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Everything you save. One powerful place.", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface)
+                    Text("Paste a link or share it from any app. M1RAI will inspect supported direct downloads.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     OutlinedTextField(value = url, onValueChange = { url = it; message = null; analysis = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Download link") }, placeholder = { Text("https://example.com/file.zip") }, singleLine = true)
                     AnimatedVisibility(
                         visible = platformDetection is PlatformDetection.Detected ||
@@ -282,7 +298,7 @@ private fun DownloadHome(sharedUrl: String, add: (String, LinkAnalysisResult?) -
                 }
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Your downloads", style = MaterialTheme.typography.titleLarge)
+                Text("Downloads", style = MaterialTheme.typography.headlineSmall)
                 Text("${downloads.size} items", style = MaterialTheme.typography.labelLarge)
             }
             if (downloads.isEmpty()) {
@@ -323,7 +339,7 @@ private fun DownloadHome(sharedUrl: String, add: (String, LinkAnalysisResult?) -
                     }
                 }
             }
-            Text("Early development build", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("M1RAI DOWNLOADER  •  BUILT FOR CONTROL", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
