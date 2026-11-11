@@ -97,7 +97,7 @@ internal class DownloadTaskStore(context: Context) :
     fun all(): List<StoredDownload> =
         readableDatabase.query(
             "downloads",
-            arrayOf("download_id", "url", "file_name", "mime_type", "expected_bytes", "created_at"),
+            arrayOf("download_id", "url", "file_name", "mime_type", "expected_bytes", "created_at", "transfer_status", "downloaded_bytes", "total_bytes"),
             null, null, null, null, "created_at DESC"
         ).use { cursor ->
             buildList {
