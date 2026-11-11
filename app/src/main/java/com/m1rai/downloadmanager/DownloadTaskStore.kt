@@ -11,7 +11,10 @@ internal data class StoredDownload(
     val fileName: String,
     val mimeType: String?,
     val expectedBytes: Long?,
-    val createdAt: Long
+    val createdAt: Long,
+    val transferStatus: String,
+    val downloadedBytes: Long,
+    val totalBytes: Long?
 )
 
 /**
@@ -72,7 +75,7 @@ internal class DownloadTaskStore(context: Context) :
     fun find(downloadId: Long): StoredDownload? =
         readableDatabase.query(
             "downloads",
-            arrayOf("download_id", "url", "file_name", "mime_type", "expected_bytes", "created_at"),
+            arrayOf("download_id", "url", "file_name", "mime_type", "expected_bytes", "created_at", "transfer_status", "downloaded_bytes", "total_bytes"),
             "download_id = ?",
             arrayOf(downloadId.toString()),
             null, null, null
@@ -84,7 +87,10 @@ internal class DownloadTaskStore(context: Context) :
                 fileName = cursor.getString(2),
                 mimeType = cursor.getString(3),
                 expectedBytes = if (cursor.isNull(4)) null else cursor.getLong(4),
-                createdAt = cursor.getLong(5)
+                createdAt = cursor.getLong(5),
+                transferStatus = cursor.getString(6),
+                downloadedBytes = cursor.getLong(7),
+                totalBytes = if (cursor.isNull(8)) null else cursor.getLong(8)
             )
         }
 
@@ -99,7 +105,8 @@ internal class DownloadTaskStore(context: Context) :
                     StoredDownload(
                         cursor.getLong(0), cursor.getString(1), cursor.getString(2),
                         cursor.getString(3), if (cursor.isNull(4)) null else cursor.getLong(4),
-                        cursor.getLong(5)
+                        cursor.getLong(5), cursor.getString(6), cursor.getLong(7),
+                        if (cursor.isNull(8)) null else cursor.getLong(8)
                     )
                 )
             }
