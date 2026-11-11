@@ -46,7 +46,7 @@ internal object EngineTransferRecovery {
             return EngineRecoveryDecision.RestartFromZero(partial, "No verified partial bytes are available.")
         }
         if (!record.isPartialFileConsistent(existingBytes)) {
-            return EngineRecoveryDecision.RestartFromZero("The partial file length does not match saved metadata.")
+            return EngineRecoveryDecision.RestartFromZero(partial, "The partial file length does not match saved metadata.")
         }
 
         val etag = record.etag?.takeIf { it.isNotBlank() && !it.startsWith("W/", ignoreCase = true) }
