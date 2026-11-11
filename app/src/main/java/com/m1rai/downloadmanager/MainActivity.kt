@@ -141,6 +141,27 @@ private fun readDownloads(context: Context): List<DownloadItem> {
             result += DownloadItem(downloadId, storedTitle ?: (it.getString(title) ?: "Download"), label, bytes, size, percent)
         }
     }
+    val visibleIds = result.mapTo(mutableSetOf()) { it.id }
+    stored.values.forEach { item ->
+        if (visibleIds.add(item.downloadId)) {
+            val savedStatus = when (item.transferStatus) {
+                "Queued", "Downloading", "Paused" -> "Interrupted"
+                else -> item.transferStatus
+            }
+            val total = item.totalBytes ?: item.expectedBytes ?: 0L
+            val percent = if (total > 0) {
+                ((item.downloadedBytes * 100) / total).toInt().coerceIn(0, 100)
+            } else 0
+            result += DownloadItem(
+                item.downloadId,
+                item.fileName,
+                savedStatus,
+                item.downloadedBytes,
+                total,
+                percent
+            )
+        }
+    }
     taskStore.close()
     return result.sortedByDescending { it.id }
 }
