@@ -9,6 +9,10 @@ import android.os.Environment
 import android.webkit.URLUtil
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -191,6 +195,7 @@ private fun DownloadHome(sharedUrl: String, add: (String, LinkAnalysisResult?) -
     var analysis by remember { mutableStateOf<LinkAnalysisResult?>(null) }
     var analyzing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val platformDetection = remember(url) { PlatformUrlDetector.detect(url) }
     LaunchedEffect(sharedUrl) {
         if (sharedUrl.isNotBlank()) {
             url = sharedUrl
@@ -210,31 +215,57 @@ private fun DownloadHome(sharedUrl: String, add: (String, LinkAnalysisResult?) -
                     Text("Your downloads. Under your control.", style = MaterialTheme.typography.titleLarge)
                     Text("Paste a direct file link or share one from another app.", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     OutlinedTextField(value = url, onValueChange = { url = it; message = null; analysis = null }, modifier = Modifier.fillMaxWidth(), label = { Text("Download link") }, placeholder = { Text("https://example.com/file.zip") }, singleLine = true)
+                    AnimatedVisibility(
+                        visible = platformDetection is PlatformDetection.Detected ||
+                            platformDetection is PlatformDetection.Excluded,
+                        enter = fadeIn() + slideInVertically { it / 3 },
+                        exit = fadeOut()
+                    ) {
+                        PlatformIdentityCard(platformDetection)
+                    }
                     Button(
                         onClick = {
-                            if (analysis == null) {
-                                scope.launch {
-                                    analyzing = true
-                                    message = null
-                                    analysis = null
-                                    val result = analyze(url)
-                                    result.onFailure { message = it.localizedMessage ?: "Could not analyze this link." }
-                                        .onSuccess { metadata ->
-                                            if (metadata.httpStatus in 200..299 || metadata.httpStatus == 206) analysis = metadata
-                                            else message = "The server returned HTTP ${metadata.httpStatus}. Check the link and try again."
-                                        }
-                                    analyzing = false
+                            when (val detection = platformDetection) {
+                                is PlatformDetection.Detected -> {
+                                    message = "${detection.platform.displayName} detected. Its media analysis adapter is not connected yet."
                                 }
-                            } else {
-                                message = add(url, analysis)
-                                if (message == null) { url = ""; analysis = null }
+                                is PlatformDetection.Excluded -> {
+                                    message = "${detection.platformName} is excluded from M1RAI's media downloader targets."
+                                }
+                                else -> {
+                                    if (analysis == null) {
+                                        scope.launch {
+                                            analyzing = true
+                                            message = null
+                                            analysis = null
+                                            val result = analyze(url)
+                                            result.onFailure { message = it.localizedMessage ?: "Could not analyze this link." }
+                                                .onSuccess { metadata ->
+                                                    if (metadata.httpStatus in 200..299 || metadata.httpStatus == 206) analysis = metadata
+                                                    else message = "The server returned HTTP ${metadata.httpStatus}. Check the link and try again."
+                                                }
+                                            analyzing = false
+                                        }
+                                    } else {
+                                        message = add(url, analysis)
+                                        if (message == null) { url = ""; analysis = null }
+                                    }
+                                }
                             }
                         },
                         enabled = url.isNotBlank() && !analyzing,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null)
-                        Text(if (analyzing) "  Analyzing…" else if (analysis == null) "  Analyze link" else "  Start download")
+                        Text(
+                            when {
+                                analyzing -> "  Analyzing…"
+                                platformDetection is PlatformDetection.Detected -> "  Platform detected"
+                                platformDetection is PlatformDetection.Excluded -> "  Native app download"
+                                analysis == null -> "  Analyze link"
+                                else -> "  Start download"
+                            }
+                        )
                     }
                     analysis?.let { info ->
                         Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
@@ -292,6 +323,51 @@ private fun DownloadHome(sharedUrl: String, add: (String, LinkAnalysisResult?) -
                 }
             }
             Text("Early development build", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun PlatformIdentityCard(detection: PlatformDetection) {
+    val platformName: String
+    val subtitle: String
+    val monogram: String
+    when (detection) {
+        is PlatformDetection.Detected -> {
+            platformName = detection.platform.displayName
+            subtitle = "Platform recognized · Media adapter not connected yet"
+            monogram = detection.platform.displayName.take(2).uppercase(Locale.ROOT)
+        }
+        is PlatformDetection.Excluded -> {
+            platformName = detection.platformName
+            subtitle = "Uses its own native download or save experience"
+            monogram = detection.platformName.take(2).uppercase(Locale.ROOT)
+        }
+        else -> return
+    }
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+        ) {
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
+                    Text(monogram, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(platformName, style = MaterialTheme.typography.titleMedium)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
     }
 }
