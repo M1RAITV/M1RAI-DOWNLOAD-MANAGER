@@ -404,11 +404,30 @@ private fun PlatformIdentityCard(detection: PlatformDetection) {
 
 @Composable
 private fun M1Theme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = darkColorScheme(
-        primary = Color(0xFFFF4057),
-        secondary = Color(0xFFB8C5D9),
-        background = Color(0xFF0B0D12),
-        surface = Color(0xFF151922),
-        surfaceVariant = Color(0xFF202632)
-    ), content = content)
+    MaterialTheme(
+        colorScheme = darkColorScheme(
+            primary = Color(0xFF38DDF5),
+            onPrimary = Color(0xFF04151B),
+            primaryContainer = Color(0xFF123B49),
+            onPrimaryContainer = Color(0xFFB9F5FF),
+            secondary = Color(0xFFB39BFF),
+            onSecondary = Color(0xFF20133F),
+            secondaryContainer = Color(0xFF35265A),
+            onSecondaryContainer = Color(0xFFE5DCFF),
+            tertiary = Color(0xFF73E6C2),
+            onTertiary = Color(0xFF06251D),
+            tertiaryContainer = Color(0xFF123D32),
+            onTertiaryContainer = Color(0xFFB8F5E1),
+            background = Color(0xFF080B13),
+            onBackground = Color(0xFFF2F6FF),
+            surface = Color(0xFF101725),
+            onSurface = Color(0xFFF2F6FF),
+            surfaceVariant = Color(0xFF172235),
+            onSurfaceVariant = Color(0xFFA8B7CC),
+            outline = Color(0xFF3B4B62),
+            error = Color(0xFFFF7185),
+            onError = Color(0xFF3A0710)
+        ),
+        content = content
+    )
 }
