@@ -8,7 +8,7 @@ android {
     compileSdk = 36
     defaultConfig {
         applicationId = "com.m1rai.downloadmanager"
-        minSdk = 26
+        minSdk = 21
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
