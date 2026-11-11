@@ -64,11 +64,12 @@ class MainActivity : ComponentActivity() {
 
 private fun extractSharedUrl(intent: Intent?): String {
     if (intent == null) return ""
-    return when (intent.action) {
-        Intent.ACTION_SEND -> intent.getStringExtra(Intent.EXTRA_TEXT).orEmpty().trim()
-        Intent.ACTION_VIEW -> intent.dataString.orEmpty().trim()
+    val sharedText = when (intent.action) {
+        Intent.ACTION_SEND -> intent.getStringExtra(Intent.EXTRA_TEXT).orEmpty()
+        Intent.ACTION_VIEW -> intent.dataString.orEmpty()
         else -> ""
     }
+    return DownloadLinkRules.extractHttpUrl(sharedText).orEmpty()
 }
 
 private fun addDownload(context: Context, raw: String, metadata: LinkAnalysisResult?): String? {

@@ -1,6 +1,8 @@
 package com.m1rai.downloadmanager
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -29,5 +31,31 @@ class DownloadLinkRulesTest {
 
     @Test fun rejectsEmbeddedCredentials() {
         assertFalse(DownloadLinkRules.isValidHttpUrl("https://user:pass@example.com/file.zip"))
+    }
+
+    @Test fun extractsUrlFromSharedText() {
+        assertEquals(
+            "https://example.com/video.mp4",
+            DownloadLinkRules.extractHttpUrl("Check this out: https://example.com/video.mp4")
+        )
+    }
+
+    @Test fun removesTrailingSentencePunctuation() {
+        assertEquals(
+            "https://example.com/file.zip",
+            DownloadLinkRules.extractHttpUrl("Download: https://example.com/file.zip.")
+        )
+    }
+
+    @Test fun skipsInvalidCandidatesAndFindsNextValidUrl() {
+        assertEquals(
+            "https://example.org/file.zip",
+            DownloadLinkRules.extractHttpUrl("https://user:pass@example.com/a https://example.org/file.zip")
+        )
+    }
+
+    @Test fun returnsNullWhenSharedTextHasNoValidHttpUrl() {
+        assertNull(DownloadLinkRules.extractHttpUrl("Open this ftp://example.com/file.zip"))
+        assertNull(DownloadLinkRules.extractHttpUrl("No link included"))
     }
 }
