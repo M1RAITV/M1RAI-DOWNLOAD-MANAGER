@@ -12,9 +12,9 @@ internal data class StoredDownload(
     val mimeType: String?,
     val expectedBytes: Long?,
     val createdAt: Long,
-    val transferStatus: String,
-    val downloadedBytes: Long,
-    val totalBytes: Long?
+    val transferStatus: String = "Queued",
+    val downloadedBytes: Long = 0,
+    val totalBytes: Long? = null
 )
 
 /**
