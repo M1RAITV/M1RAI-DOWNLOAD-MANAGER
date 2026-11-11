@@ -384,6 +384,10 @@ private fun PlatformIdentityCard(detection: PlatformDetection) {
                         MediaPlatform.YOUTUBE -> R.drawable.ic_platform_youtube
                         MediaPlatform.INSTAGRAM -> R.drawable.ic_platform_instagram
                         MediaPlatform.TIKTOK -> R.drawable.ic_platform_tiktok
+                        MediaPlatform.FACEBOOK -> R.drawable.ic_platform_facebook
+                        MediaPlatform.REDDIT -> R.drawable.ic_platform_reddit
+                        MediaPlatform.PINTEREST -> R.drawable.ic_platform_pinterest
+                        MediaPlatform.SNAPCHAT -> R.drawable.ic_platform_snapchat
                         else -> 0
                     }
                     if (logo != 0) Image(painterResource(logo), contentDescription = "$platformName logo", modifier = Modifier.size(30.dp))
