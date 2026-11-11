@@ -13,6 +13,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,6 +27,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.painterResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -378,7 +380,14 @@ private fun PlatformIdentityCard(detection: PlatformDetection) {
                 modifier = Modifier.size(48.dp)
             ) {
                 Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
-                    Text(monogram, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    val logo = when ((detection as? PlatformDetection.Detected)?.platform) {
+                        MediaPlatform.YOUTUBE -> R.drawable.ic_platform_youtube
+                        MediaPlatform.INSTAGRAM -> R.drawable.ic_platform_instagram
+                        MediaPlatform.TIKTOK -> R.drawable.ic_platform_tiktok
+                        else -> 0
+                    }
+                    if (logo != 0) Image(painterResource(logo), contentDescription = "$platformName logo", modifier = Modifier.size(30.dp))
+                    else Text(monogram, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
                 }
             }
             Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
