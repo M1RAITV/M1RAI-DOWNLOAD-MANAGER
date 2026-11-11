@@ -104,27 +104,7 @@ internal class DownloadTaskStore(context: Context) :
 
     /** Insert or atomically replace only an app-engine task; legacy rows are untouched. */
     fun saveEngineTransfer(item: EngineTransferRecord) {
-        require(item.taskId.isNotBlank())
-        require(DownloadLinkRules.isValidHttpUrl(item.url))
-        require(item.partialPath.isNotBlank() && item.fileName.isNotBlank())
-        require(item.downloadedBytes >= 0L)
-        require(item.totalBytes == null || item.totalBytes >= 0L)
-
-        val values = ContentValues().apply {
-            put("task_id", item.taskId)
-            put("url", item.url)
-            put("partial_path", item.partialPath)
-            put("file_name", item.fileName)
-            put("mime_type", item.mimeType)
-            put("status", item.status)
-            put("downloaded_bytes", item.downloadedBytes)
-            if (item.totalBytes == null) putNull("total_bytes") else put("total_bytes", item.totalBytes)
-            put("etag", item.etag)
-            put("last_modified", item.lastModified)
-            put("error_message", item.errorMessage)
-            put("created_at", item.createdAt)
-            put("updated_at", item.updatedAt)
-        }
+        val values = engineTransferValues(item)
         val db = writableDatabase
         db.beginTransaction()
         try {
@@ -133,6 +113,42 @@ internal class DownloadTaskStore(context: Context) :
         } finally {
             db.endTransaction()
         }
+    }
+
+    /**
+     * Atomically inserts a new engine task without replacing an existing task.
+     * SQLite's primary-key constraint and CONFLICT_IGNORE make this safe against
+     * concurrent creators; a conflict returns false and leaves the old row intact.
+     */
+    fun insertEngineTransferIfAbsent(item: EngineTransferRecord): Boolean {
+        val values = engineTransferValues(item)
+        return writableDatabase.insertWithOnConflict(
+            "engine_transfers",
+            null,
+            values,
+            SQLiteDatabase.CONFLICT_IGNORE
+        ) != -1L
+    }
+
+    private fun engineTransferValues(item: EngineTransferRecord) = ContentValues().apply {
+        require(item.taskId.isNotBlank())
+        require(DownloadLinkRules.isValidHttpUrl(item.url))
+        require(item.partialPath.isNotBlank() && item.fileName.isNotBlank())
+        require(item.downloadedBytes >= 0L)
+        require(item.totalBytes == null || item.totalBytes >= 0L)
+        put("task_id", item.taskId)
+        put("url", item.url)
+        put("partial_path", item.partialPath)
+        put("file_name", item.fileName)
+        put("mime_type", item.mimeType)
+        put("status", item.status)
+        put("downloaded_bytes", item.downloadedBytes)
+        if (item.totalBytes == null) putNull("total_bytes") else put("total_bytes", item.totalBytes)
+        put("etag", item.etag)
+        put("last_modified", item.lastModified)
+        put("error_message", item.errorMessage)
+        put("created_at", item.createdAt)
+        put("updated_at", item.updatedAt)
     }
 
     fun findEngineTransfer(taskId: String): EngineTransferRecord? =
