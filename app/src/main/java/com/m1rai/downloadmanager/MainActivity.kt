@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
                     sharedUrl = incomingSharedUrl,
                     add = { value, metadata -> addDownload(this, value, metadata) },
                     analyze = { LinkAnalyzer().analyze(it) },
-                    cancel = { getSystemService(DownloadManager::class.java).remove(it) },
+                    cancel = { cancelDownload(this, it) },
                     retry = { retryDownload(this, it) },
                     refresh = { readDownloads(this) }
                 )
@@ -95,6 +95,17 @@ private fun addDownload(context: Context, raw: String, metadata: LinkAnalysisRes
         }
         null
     }.getOrElse { it.localizedMessage ?: "Download could not be queued." }
+}
+
+private fun cancelDownload(context: Context, downloadId: Long) {
+    val removed = runCatching {
+        context.getSystemService(DownloadManager::class.java).remove(downloadId)
+    }.getOrDefault(0)
+    if (removed > 0) {
+        runCatching {
+            DownloadTaskStore(context).use { it.markStatus(downloadId, "Cancelled") }
+        }
+    }
 }
 
 private fun retryDownload(context: Context, downloadId: Long): String? {
