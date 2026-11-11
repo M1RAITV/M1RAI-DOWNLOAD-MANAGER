@@ -60,6 +60,13 @@ internal class DownloadTaskStore(context: Context) :
         writableDatabase.update("downloads", values, "download_id = ?", arrayOf(downloadId.toString()))
     }
 
+    fun markStatus(downloadId: Long, status: String) {
+        val values = ContentValues().apply {
+            put("transfer_status", status)
+        }
+        writableDatabase.update("downloads", values, "download_id = ?", arrayOf(downloadId.toString()))
+    }
+
     fun save(item: StoredDownload) {
         val values = ContentValues().apply {
             put("download_id", item.downloadId)
