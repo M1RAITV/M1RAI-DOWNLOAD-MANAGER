@@ -12,4 +12,7 @@ internal class SqliteEngineTransferPersistence(
 
     override fun insertIfAbsent(record: EngineTransferRecord): Boolean =
         store.insertEngineTransferIfAbsent(record)
+
+    override fun update(record: EngineTransferRecord): Boolean =
+        store.updateEngineTransfer(record)
 }

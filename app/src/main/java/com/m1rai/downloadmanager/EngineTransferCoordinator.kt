@@ -9,6 +9,7 @@ import java.io.File
 internal interface EngineTransferPersistence {
     fun find(taskId: String): EngineTransferRecord?
     fun insertIfAbsent(record: EngineTransferRecord): Boolean
+    fun update(record: EngineTransferRecord): Boolean
 }
 
 /**

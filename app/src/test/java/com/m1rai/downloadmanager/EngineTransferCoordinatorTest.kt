@@ -15,6 +15,11 @@ class EngineTransferCoordinatorTest {
             records[record.taskId] = record
             return true
         }
+        override fun update(record: EngineTransferRecord): Boolean {
+            if (!records.containsKey(record.taskId)) return false
+            records[record.taskId] = record
+            return true
+        }
     }
 
     @Test fun createsQueuedRecordWithPrivatePartialPathAndStableTimestamp() {
@@ -22,10 +27,7 @@ class EngineTransferCoordinatorTest {
         try {
             val persistence = FakePersistence()
             val coordinator = EngineTransferCoordinator(EnginePartialFileStore(root), root, persistence) { 1234L }
-            val record = coordinator.createQueuedTransfer(
-                "task_01", "https://example.com/video.mp4", "video.mp4", "video/mp4"
-            )
-
+            val record = coordinator.createQueuedTransfer("task_01", "https://example.com/video.mp4", "video.mp4", "video/mp4")
             assertEquals(TransferStatus.QUEUED.name, record.status)
             assertEquals(0L, record.downloadedBytes)
             assertEquals(1234L, record.createdAt)
@@ -33,9 +35,7 @@ class EngineTransferCoordinatorTest {
             assertTrue(File(record.partialPath).isFile)
             assertTrue(File(record.partialPath).canonicalPath.startsWith(root.canonicalPath + File.separator))
             assertEquals(record, persistence.find("task_01"))
-        } finally {
-            root.deleteRecursively()
-        }
+        } finally { root.deleteRecursively() }
     }
 
     @Test fun refusesDuplicateTaskIdsWithoutReplacingExistingRecord() {
@@ -44,15 +44,10 @@ class EngineTransferCoordinatorTest {
             val persistence = FakePersistence()
             val coordinator = EngineTransferCoordinator(EnginePartialFileStore(root), root, persistence) { 1L }
             val first = coordinator.createQueuedTransfer("same-id", "https://example.com/a", "a.bin")
-            val error = runCatching {
-                coordinator.createQueuedTransfer("same-id", "https://example.com/b", "b.bin")
-            }.exceptionOrNull()
-
+            val error = runCatching { coordinator.createQueuedTransfer("same-id", "https://example.com/b", "b.bin") }.exceptionOrNull()
             assertTrue(error is IllegalArgumentException)
             assertEquals(first, persistence.find("same-id"))
-        } finally {
-            root.deleteRecursively()
-        }
+        } finally { root.deleteRecursively() }
     }
 
     @Test fun missingTaskIsNotRecoverable() {
@@ -60,8 +55,6 @@ class EngineTransferCoordinatorTest {
         try {
             val coordinator = EngineTransferCoordinator(EnginePartialFileStore(root), root, FakePersistence())
             assertTrue(coordinator.assessRecovery("absent") is EngineRecoveryDecision.NotRecoverable)
-        } finally {
-            root.deleteRecursively()
-        }
+        } finally { root.deleteRecursively() }
     }
 }

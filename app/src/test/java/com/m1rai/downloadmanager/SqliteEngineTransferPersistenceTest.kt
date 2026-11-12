@@ -54,6 +54,23 @@ class SqliteEngineTransferPersistenceTest {
         assertEquals(original, persistence.find("same-task"))
     }
 
+    @Test fun updateChangesOnlyAnExistingEngineRecord() {
+        val original = record("update-task")
+        assertTrue(persistence.insertIfAbsent(original))
+        val updated = original.copy(
+            status = TransferStatus.DOWNLOADING.name,
+            downloadedBytes = 64L,
+            totalBytes = 128L,
+            etag = "\"strong-tag\"",
+            updatedAt = 2L
+        )
+
+        assertTrue(persistence.update(updated))
+        assertEquals(updated, persistence.find("update-task"))
+        assertFalse(persistence.update(updated.copy(taskId = "missing-task")))
+        assertEquals(1, store.allEngineTransfers().size)
+    }
+
     @Test fun engineInsertLeavesLegacyDownloadRowsUntouched() {
         val legacy = StoredDownload(
             downloadId = 77L,

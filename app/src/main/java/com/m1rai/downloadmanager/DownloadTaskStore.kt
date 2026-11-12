@@ -115,6 +115,14 @@ internal class DownloadTaskStore(context: Context) :
         }
     }
 
+    /** Updates an existing engine task only; it never inserts or replaces another task. */
+    fun updateEngineTransfer(item: EngineTransferRecord): Boolean {
+        val values = engineTransferValues(item)
+        return writableDatabase.update(
+            "engine_transfers", values, "task_id = ?", arrayOf(item.taskId)
+        ) > 0
+    }
+
     /**
      * Atomically inserts a new engine task without replacing an existing task.
      * SQLite's primary-key constraint and CONFLICT_IGNORE make this safe against
