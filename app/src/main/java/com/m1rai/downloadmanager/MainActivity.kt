@@ -85,7 +85,7 @@ private fun addDownload(context: Context, raw: String, metadata: LinkAnalysisRes
         .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         .setAllowedOverMetered(true)
         .setAllowedOverRoaming(false)
-        .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, filename)
+        .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, DownloadDestination.relativePath(filename))
     return runCatching {
         val id = context.getSystemService(DownloadManager::class.java).enqueue(request)
         DownloadTaskStore(context).use { store ->
