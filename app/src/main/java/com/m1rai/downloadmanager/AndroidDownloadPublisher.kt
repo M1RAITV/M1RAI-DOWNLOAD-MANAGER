@@ -30,10 +30,20 @@ internal class AndroidDownloadPublisher(
 
     private fun publishWithMediaStore(source: File, folder: String, name: String, mime: String?): Uri {
         val resolver = context.contentResolver
+        val relativePath = "${Environment.DIRECTORY_DOWNLOADS}/$folder/"
+        val safeName = DownloadPublicationNames.uniqueName(name) { candidate ->
+            resolver.query(
+                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                arrayOf(MediaStore.MediaColumns._ID),
+                "${MediaStore.MediaColumns.RELATIVE_PATH} = ? AND ${MediaStore.MediaColumns.DISPLAY_NAME} = ?",
+                arrayOf(relativePath, candidate),
+                null
+            )?.use { it.moveToFirst() } ?: false
+        }
         val values = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+            put(MediaStore.MediaColumns.DISPLAY_NAME, safeName)
             put(MediaStore.MediaColumns.MIME_TYPE, mime?.takeIf { it.isNotBlank() } ?: "application/octet-stream")
-            put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/$folder")
+            put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
             put(MediaStore.MediaColumns.IS_PENDING, 1)
         }
         val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
@@ -97,16 +107,20 @@ internal object DownloadPublicationNames {
         return name
     }
 
-    fun uniqueFile(directory: File, requestedName: String): File {
-        val original = File(validateFileName(requestedName))
+    fun uniqueName(requestedName: String, exists: (String) -> Boolean): String {
+        val name = validateFileName(requestedName)
+        val original = File(name)
         val base = original.nameWithoutExtension.ifBlank { "download" }
         val extension = original.extension.takeIf { it.isNotBlank() }?.let { ".$it" }.orEmpty()
-        var candidate = File(directory, requestedName)
+        var candidate = name
         var suffix = 1
-        while (candidate.exists()) {
-            candidate = File(directory, "$base ($suffix)$extension")
+        while (exists(candidate)) {
+            candidate = "$base ($suffix)$extension"
             suffix++
         }
         return candidate
     }
+
+    fun uniqueFile(directory: File, requestedName: String): File =
+        File(directory, uniqueName(requestedName) { File(directory, it).exists() })
 }

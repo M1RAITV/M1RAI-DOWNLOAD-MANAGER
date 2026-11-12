@@ -40,4 +40,14 @@ class DownloadPublicationNamesTest {
         assertEquals("archive (2).zip", DownloadPublicationNames.uniqueFile(directory, "archive.zip").name)
         assertTrue(directory.isDirectory)
     }
+
+    @Test fun resolvesMediaStoreNameCollisionsWithoutOverwriting() {
+        val existing = setOf("clip.mp4", "clip (1).mp4")
+        val selected = DownloadPublicationNames.uniqueName("clip.mp4") { it in existing }
+        assertEquals("clip (2).mp4", selected)
+    }
+
+    @Test fun keepsOriginalNameWhenNoCollisionExists() {
+        assertEquals("photo.jpg", DownloadPublicationNames.uniqueName("photo.jpg") { false })
+    }
 }
