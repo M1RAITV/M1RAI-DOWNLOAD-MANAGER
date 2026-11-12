@@ -33,12 +33,12 @@ uses Jetpack Compose, whose supported Android baseline is API 21.
 
 ## Current verification status
 
-- Repository CI Build #72 passed before this compatibility change.
-- The API 21 minimum is now declared in Gradle.
-- This commit still requires CI build/test confirmation.
-- No Android 5.0 emulator or physical-device runtime test has been performed here.
-- Dependency resolution and manifest/resource installation must be checked by CI,
-  followed by an API 21 emulator/device smoke test before claiming full device support.
+- Repository CI Build #73 passed on commit `cdd0e67d3cd9d3b09d322dde4bae89d8731e1f60`.
+- The build completed the debug APK build, unit tests, and APK upload successfully.
+- The API 21 minimum is declared in Gradle and accepted by the current build configuration.
+- The app's current Compose BOM is `2025.08.01` (Compose 1.9 generation); Compose 1.9 and earlier retain API 21 as their minimum. Do not upgrade to Compose 1.10+ without a deliberate API 23 compatibility decision.
+- No Android 5.0 emulator or physical-device runtime test has been performed here. A successful build is not proof of runtime compatibility.
+- Next verification gate: install and launch the APK on an API 21 emulator/device, then exercise link analysis, enqueue, notification visibility, cancellation, and history refresh.
 
 ## Dependency baseline to keep under review
 
