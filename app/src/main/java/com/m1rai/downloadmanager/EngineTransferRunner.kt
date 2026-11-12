@@ -2,6 +2,8 @@ package com.m1rai.downloadmanager
 
 import java.io.File
 
+internal fun interface EngineTransferPublisher { fun publish(file: File, fileName: String, mimeType: String?): String }
+
 internal fun interface EngineTransferExecutor {
     fun transfer(url: String, partialFile: File, previousValidators: TransferValidators, control: TransferControl, onProgress: (TransferProgress) -> Unit): HttpTransferResult
 }
@@ -16,12 +18,36 @@ internal class EngineTransferRunner(
     private val appPrivateDirectory: File,
     private val persistence: EngineTransferPersistence,
     private val engine: EngineTransferExecutor,
+    private val publisher: EngineTransferPublisher,
     private val now: () -> Long = System::currentTimeMillis,
     private val checkpointBytes: Long = 512L * 1024L
 ) {
+    private fun verifiedCompletedPartial(record: EngineTransferRecord): File? {
+        val root = runCatching { appPrivateDirectory.canonicalFile }.getOrNull() ?: return null
+        val file = runCatching { File(record.partialPath).canonicalFile }.getOrNull() ?: return null
+        val prefix = root.path.trimEnd(File.separatorChar) + File.separator
+        if (!file.path.startsWith(prefix) || !file.isFile || file.length() <= 0L) return null
+        if (file.length() != record.downloadedBytes) return null
+        if (record.totalBytes != null && file.length() != record.totalBytes) return null
+        return file
+    }
+
     fun run(taskId: String, control: TransferControl): EngineTransferRunResult {
         var record = persistence.find(taskId)
             ?: return EngineTransferRunResult.NotStarted("The transfer task does not exist.")
+        if (record.status == TransferStatus.PUBLISH_FAILED.name) {
+            val file = verifiedCompletedPartial(record) ?: return EngineTransferRunResult.NotStarted("Completed partial file is missing or inconsistent.")
+            return try {
+                publisher.publish(file, record.fileName, record.mimeType)
+                record = record.copy(status = TransferStatus.COMPLETED.name, errorMessage = null, updatedAt = now())
+                check(persistence.update(record))
+                EngineTransferRunResult.Finished(record)
+            } catch (error: Exception) {
+                record = record.copy(errorMessage = error.localizedMessage ?: "Publication failed.", updatedAt = now())
+                check(persistence.update(record))
+                EngineTransferRunResult.Finished(record)
+            }
+        }
         val recovery = EngineTransferRecovery.assess(record, appPrivateDirectory)
         val partialFile = when (recovery) {
             is EngineRecoveryDecision.ResumeFromOffset -> recovery.partialFile
@@ -82,8 +108,13 @@ internal class EngineTransferRunner(
             is HttpTransferResult.Completed -> {
                 if (snapshot.status == TransferStatus.CONNECTING) snapshot = TransferStateReducer.reduce(snapshot, TransferEvent.Connected(result.totalBytes))
                 snapshot = TransferStateReducer.reduce(snapshot, TransferEvent.Progress(result.downloadedBytes, result.totalBytes))
-                snapshot = TransferStateReducer.reduce(snapshot, TransferEvent.Complete)
                 resultValidators = result.validators
+                try {
+                    publisher.publish(partialFile, record.fileName, record.mimeType)
+                    snapshot = TransferStateReducer.reduce(snapshot, TransferEvent.Complete)
+                } catch (error: Exception) {
+                    snapshot = snapshot.copy(status = TransferStatus.PUBLISH_FAILED, error = error.localizedMessage ?: "Publication failed.")
+                }
             }
             is HttpTransferResult.Paused -> {
                 if (snapshot.status == TransferStatus.CONNECTING) snapshot = TransferStateReducer.reduce(snapshot, TransferEvent.Connected(result.totalBytes))

@@ -1,6 +1,6 @@
 package com.m1rai.downloadmanager
 
-internal enum class TransferStatus { QUEUED, CONNECTING, DOWNLOADING, PAUSED, COMPLETED, FAILED, CANCELLED, INTERRUPTED }
+internal enum class TransferStatus { QUEUED, CONNECTING, DOWNLOADING, PAUSED, COMPLETED, FAILED, PUBLISH_FAILED, CANCELLED, INTERRUPTED }
 
 internal data class TransferSnapshot(
     val status: TransferStatus = TransferStatus.QUEUED,
