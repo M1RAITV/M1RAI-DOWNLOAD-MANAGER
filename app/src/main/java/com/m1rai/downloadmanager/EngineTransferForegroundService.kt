@@ -49,7 +49,10 @@ internal class EngineTransferForegroundService : Service() {
                 appPrivateDirectory = filesDir,
                 persistence = SqliteEngineTransferPersistence(store),
                 engine = EngineTransferExecutor { url, partial, validators, control, onProgress ->
-                    HttpFileTransferEngine().transfer(url, partial, validators, control, onProgress)
+                    HttpFileTransferEngine().transfer(url, partial, validators, control) { progress ->
+                        notifyProgress(progress)
+                        onProgress(progress)
+                    }
                 },
                 publisher = EngineTransferPublisher { file, fileName, mimeType ->
                     AndroidDownloadPublisher(this).publish(file, fileName, mimeType).toString()
@@ -84,7 +87,7 @@ internal class EngineTransferForegroundService : Service() {
         }
     }
 
-    private fun notification(title: String, message: String?): Notification {
+    private fun notification(title: String, message: String?, progress: TransferProgress? = null): Notification {
         val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             Notification.Builder(this, CHANNEL_ID)
         } else {
@@ -97,7 +100,29 @@ internal class EngineTransferForegroundService : Service() {
             .setContentText(message ?: "Preparing your download")
             .setOngoing(title == "Preparing download" || title == "Downloading")
             .setOnlyAlertOnce(true)
+            .apply {
+                if (progress != null) {
+                    val total = progress.totalBytes ?: -1L
+                    val known = total > 0L
+                    val percent = if (known) {
+                        ((progress.downloadedBytes.toDouble() / total.toDouble()) * 100.0)
+                            .toInt().coerceIn(0, 100)
+                    } else 0
+                    setProgress(100, percent, !known)
+                }
+            }
             .build()
+    }
+
+    private fun notifyProgress(progress: TransferProgress) {
+        val total = progress.totalBytes?.takeIf { it > 0L }
+        val message = if (total != null) {
+            "${sizeText(progress.downloadedBytes)} of ${sizeText(total)}"
+        } else {
+            "${sizeText(progress.downloadedBytes)} downloaded"
+        }
+        getSystemService(NotificationManager::class.java)
+            .notify(NOTIFICATION_ID, notification("Downloading", message, progress))
     }
 
     private fun notifyStatus(title: String, message: String) {
