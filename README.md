@@ -1,51 +1,35 @@
 # M1RAI Download Manager
 
-A free, open-source Android download manager focused on a clean experience, reliable file transfers, and a codebase developers can understand and improve.
+A free, open-source Android download manager built with Kotlin and Jetpack Compose.
 
 ## Status
 
-Early development prototype. This is not yet a production or Play Store release.
+Early development prototype; not a production or Play Store release.
 
-## Technology
+## Current user-facing prototype
+- Direct HTTP/HTTPS links queued through Android DownloadManager.
+- Download status, progress, and downloaded size.
+- Plain-text share-to-app support.
+- Downloads saved under the public Downloads directory using the M1RAI DOWNLOADS destination path.
 
-- Android only
-- Kotlin and Jetpack Compose
-- Android system DownloadManager for the first direct-link prototype
-- GitHub Actions for cloud builds
-- MIT licence
-
-## Current prototype
-
-- Accepts direct HTTP and HTTPS file links.
-- Queues downloads using Android DownloadManager.
-- Displays status, progress, and downloaded size.
-- Receives plain-text links shared from other apps.
-- Uses Android's system download notification and Downloads folder.
+## Experimental transfer engine
+An app-owned HTTP engine, persistence, partial-file handling, recovery logic, and runner exist. An API 26–33 foreground service reports progress/status notifications. An Android 14+ JobInfo contract and SDK execution policy also exist. These components are NOT connected to the normal add-download UI. The API 34+ JobService is NOT implemented or registered. Advanced pause/resume must not be described as user-ready.
 
 ## Known limitations
-
 - Website-specific media extraction is not implemented.
-- General pause/resume controls are not implemented in this prototype.
-- Speed and ETA are not displayed yet.
-- Error details, file conflict handling, and persistent in-app history need improvement.
-- No Play Store readiness or real-device testing is claimed.
+- The active DownloadManager flow has no general pause/resume controls.
+- Speed and ETA are not displayed.
+- Error details, file conflict handling, and persistent history need more work.
+- No physical-device verification, Play Store readiness, or release build is claimed.
 
 ## Build
+GitHub Actions builds a debug APK and runs JVM unit tests. See .github/workflows/android.yml and the Actions tab.
 
-The GitHub Actions workflow in .github/workflows/android.yml builds a debug APK in the cloud. Open the Actions tab, select Android Build, and run the workflow. Download the generated artifact when the run succeeds.
-
-## Project plan
-
-See ROADMAP.md and docs/FOUNDATION-DECISION.md.
+## Project plan and handoff
+See ROADMAP.md, docs/FOUNDATION-DECISION.md, and docs/MASTER-HANDOFF-AND-CONTINUATION-PROMPT.md.
 
 ## Responsible use
-
 Only download files you own or are authorized to download. Do not bypass DRM, paywalls, authentication, private access, or platform protections. Respect copyright, service terms, and applicable law.
 
-## Contributing
-
-See CONTRIBUTING.md.
-
 ## Licence
-
 MIT. See LICENSE.
