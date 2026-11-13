@@ -185,7 +185,7 @@ private fun readDownloads(context: Context): List<DownloadItem> {
     return result.sortedByDescending { it.id }
 }
 
-private fun sizeText(bytes: Long): String {
+internal fun sizeText(bytes: Long): String {
     if (bytes < 0) return "Size unknown"
     if (bytes < 1024) return "$bytes B"
     val units = listOf("KB", "MB", "GB", "TB")
