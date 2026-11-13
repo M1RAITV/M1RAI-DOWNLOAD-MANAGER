@@ -1,73 +1,44 @@
 # M1RAI Download Manager
 
-A planned, modern download manager focused on simplicity, performance, and user control.
-
 ## Product direction
+- Android only; iOS is out of scope.
+- Local-first, no account required for ordinary downloads.
+- Premium dark/light UI; phone-first GitHub workflow with cloud builds.
+- Direct links and authorized media only; no DRM, paywall, private-access, or authentication bypass.
 
-- Android only. iOS is explicitly out of scope.
-- Local-first core functionality; no account required for ordinary downloads.
-- Clean, premium interface with dark and light themes.
-- Simple workflow: add or share a link, analyze what is available, choose a supported file or media option, then download.
-- Organised, modular source code that developers can understand, maintain, and extend.
+## Phase 0 — Foundation
+- [x] Preliminary Gopeed review (see docs/FOUNDATION-AUDIT.md).
+- [ ] Complete comparative foundation and dependency licence audit.
+- [x] Android-only Kotlin/Compose foundation and cloud-built direct-download prototype.
+- [ ] Document full architecture and conventions.
 
-## Planned capabilities
+## Phase 1 — Android MVP
+- [x] Direct-link Android shell and HTTP metadata analyzer.
+- [x] SQLite metadata store, share-to-app, destination naming, basic queue/status UI.
+- [x] Unit tests for URL rules, metadata, destination, transfer state/recovery, and HTTP range behavior.
+- [x] Cloud build, JVM tests, and debug APK artifact verified (commit 44aec3102cfac1cd0bf143eb9db6fbbf6fa40ff7; run 43433914500).
+- [ ] Complete robust user-facing pause/resume/retry and history integration.
 
-- Direct downloads for supported files such as documents, PDFs, archives, images, audio, and video.
-- Download queue and active, completed, failed, and cancelled states.
-- Progress, transfer speed, downloaded size, and ETA when the server provides enough information.
-- Pause, resume, cancel, retry, and history.
-- Resume large downloads when the remote server supports range requests.
-- Android share-to-app integration.
-- Link and media analysis only where technically reliable and permitted.
-- Source adapters designed as separate modules, without promising universal website compatibility.
+## Phase 2 — Transfer engine and polish
+- [x] Experimental app-owned HTTP engine, persistence, partial-file and recovery components.
+- [x] API 26–33 foreground service with progress/status notifications (not wired into UI).
+- [x] API 34+ JobInfo contract and SDK execution policy (contract only).
+- [ ] Implement/register Android 14+ user-initiated transfer JobService.
+- [ ] Add one API-aware execution coordinator and connect the normal queue flow.
+- [ ] Implement and verify pause/resume/cancel/retry lifecycle.
+- [ ] Physical-device tests on Android 8–13 and 14+; process death, network interruption, storage failure, large files.
+- [ ] Finalize accessible dark/light themes.
 
-## Delivery roadmap
+## Phase 3 — Authorized adapters
+- [ ] Modular adapters only for sources where downloading is permitted and technically supported.
+- [ ] Verify formats/quality per source; document limitations.
 
-### Phase 0 — Foundation audit
-- [x] Perform a preliminary review of Gopeed as a candidate; see [FOUNDATION-AUDIT.md](docs/FOUNDATION-AUDIT.md).
-- [ ] Complete comparative foundation and dependency licence audit before adoption.
-- [x] Remove cross-platform/iOS requirements from the project scope.
-- [x] Validate the initial native Android shell and direct-download prototype with a cloud-built proof of concept (system DownloadManager only; advanced controls remain pending).
-- [ ] Document architecture and project conventions.
+## Phase 4 — Release
+- [ ] Security, privacy, dependency licence, and Play policy review.
+- [ ] Signed release, changelog, and store listing.
 
-### Phase 1 — Android MVP
-- [x] Create the initial Kotlin/Jetpack Compose Android shell and direct-link download prototype (early prototype; not release-ready).
-- [x] Implement an HTTP metadata analyzer with HEAD and one-byte range fallback.
-- [x] Connect link analysis to the app screen with filename, MIME type, size, and range-support details (cloud CI and device verification pending).
-- [ ] Replace/extend the prototype engine to support robust pause/resume, retry, and detailed task control.
-- [x] Add a local SQLite store for original URLs and analyzed file metadata when downloads are queued (engine status/history integration remains pending).
-- [x] Pass cloud CI build/tests and verify a debug APK artifact was uploaded (not a release build).
+## Verified status
+Latest cloud run 43433914500 passed assembleDebug, testDebugUnitTest, and APK upload. This is a debug artifact only; no physical-device installation or end-to-end device test is claimed. The experimental engine is not integrated into the user-facing queue. Update checkboxes only with evidence.
 
-### Phase 2 — Android integration and polish
-- [x] Add initial plain-text Android share-to-app intent support (needs device verification).
-- [ ] Improve background-download reliability and notifications.
-- [ ] Deliver polished dark and light themes and accessible states.
-- [ ] Test large files, interrupted connections, and server range support.
-
-### Phase 3 — Permitted media adapters
-- [ ] Add modular adapters for sources where downloading is authorized and technically supported.
-- [ ] Show available formats and quality only when verified by the source.
-- [ ] Test each adapter independently and document limitations.
-
-### Phase 4 — Release and maintenance
-- [ ] Complete security, privacy, reliability, and dependency licence review.
-- [x] Add initial README, privacy disclosure, security policy, and contribution guide.
-- [ ] Prepare signed release builds, store listing, and a versioned changelog.
-
-## Principles and limitations
-
-- Never bypass DRM, paywalls, private access, authentication restrictions, or platform protections.
-- Only support downloads that the user is authorized to make and that applicable platform terms and laws permit.
-- A publicly viewable link does not automatically grant download permission.
-- Do not claim a source, feature, build, or test works until it has been verified.
-- Preserve working functionality; make changes for demonstrated reasons and test them.
-
-## Current verified status
-
-- [x] Public GitHub repository created.
-- [x] GitHub Codex Connector installation/authorization initiated by the repository owner.
-- [x] Repository write access verified by successful commits from connected development tools.
-- [ ] Foundation and licence audit completed.
-- [x] Application implementation started.
-
-The successful cloud APK is a debug prototype only. It has not been installed or verified on a physical Android device. This roadmap describes intended work, not features already delivered. Update checkboxes only after evidence-backed verification.
+## Principles
+Preserve working behavior. Make minimal, evidence-based changes. A successful cloud build is not proof of device behavior or release readiness.
