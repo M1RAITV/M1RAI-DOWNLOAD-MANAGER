@@ -1,14 +1,19 @@
 package com.m1rai.downloadmanager
 
+import android.Manifest
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Build
 import android.os.Environment
 import android.webkit.URLUtil
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -25,6 +30,7 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.painterResource
@@ -198,6 +204,26 @@ private fun DownloadHome(sharedUrl: String, add: (String, LinkAnalysisResult?) -
     var analysis by remember { mutableStateOf<LinkAnalysisResult?>(null) }
     var analyzing by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var pendingStorageAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    val storagePermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        val action = pendingStorageAction
+        pendingStorageAction = null
+        if (granted) action?.invoke()
+        else message = "Storage permission was denied. Allow it in Android Settings to save downloads into M1RAI DOWNLOADS."
+    }
+    fun withStoragePermission(action: () -> Unit) {
+        if (DownloadStoragePermissionPolicy.requiresRuntimePermission(Build.VERSION.SDK_INT) &&
+            context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+        ) {
+            pendingStorageAction = action
+            storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        } else {
+            action()
+        }
+    }
     val platformDetection = remember(url) { PlatformUrlDetector.detect(url) }
     LaunchedEffect(sharedUrl) {
         if (sharedUrl.isNotBlank()) {
@@ -266,8 +292,10 @@ private fun DownloadHome(sharedUrl: String, add: (String, LinkAnalysisResult?) -
                                             analyzing = false
                                         }
                                     } else {
-                                        message = add(url, analysis)
-                                        if (message == null) { url = ""; analysis = null }
+                                        withStoragePermission {
+                                            message = add(url, analysis)
+                                            if (message == null) { url = ""; analysis = null }
+                                        }
                                     }
                                 }
                             }
@@ -325,7 +353,7 @@ private fun DownloadHome(sharedUrl: String, add: (String, LinkAnalysisResult?) -
                                 Text("${sizeText(item.done)} / ${sizeText(item.total)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     if (item.status == "Failed") {
-                                        OutlinedButton(onClick = { message = retry(item.id) }) {
+                                        OutlinedButton(onClick = { withStoragePermission { message = retry(item.id) } }) {
                                             Text("Retry")
                                         }
                                     }
