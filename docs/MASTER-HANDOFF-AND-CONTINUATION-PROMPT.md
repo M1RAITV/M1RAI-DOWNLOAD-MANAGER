@@ -1,42 +1,34 @@
 # M1RAI Download Manager — Master Handoff
 
-## Repository
-- https://github.com/M1RAITV/M1RAI-DOWNLOAD-MANAGER
-- Branch: main
-- Android only; Kotlin + Jetpack Compose.
-- Maintainer workflow: phone-first GitHub edits and GitHub Actions cloud builds. Never assume PC, Android Studio, or desktop Git.
+## Repository and workflow
+- Repository: https://github.com/M1RAITV/M1RAI-DOWNLOAD-MANAGER
+- Branch: main. Android only; Kotlin + Jetpack Compose.
+- Maintainer uses Android phone and GitHub; use cloud builds, never assume desktop tools.
 
-## Working rules
-1. Continue from latest main; inspect current source and docs before edits.
-2. Never restart or rebuild from scratch.
-3. Preserve working behavior; make minimal, evidence-based changes.
-4. Update ROADMAP.md and this handoff after meaningful milestones.
-5. Separate implementation, cloud build, unit-test, and physical-device verification claims.
-6. When user says Next, proceed autonomously with the next safe roadmap task. Do not ask them to repeat documented context.
-7. Only support downloads the user is authorized to make. Never bypass DRM, paywalls, authentication, private access, or platform protections.
+## Non-negotiable rules
+1. Continue from main; inspect code and docs before editing.
+2. Never restart from scratch.
+3. Preserve working behavior; smallest coherent change only.
+4. Bundle related source, tests, roadmap and handoff updates into ONE commit per task, then run CI ONCE.
+5. Never start the next task until current CI result is known.
+6. Separate implemented, cloud-built, unit-tested and physical-device-verified claims.
+7. When user says Next, continue autonomously; do not ask them to repeat recorded context.
+8. Only support authorized downloads; no DRM, paywall, authentication or private-access bypass.
 
-## Product direction
-Premium, local-first Android download manager. Accept direct links and shared text links, analyze supported files, queue transfers, show progress/status, and organize downloads in the public Downloads directory under the M1RAI DOWNLOADS path. Keep the folder name configurable as a future product capability. MIT project licence; audit third-party dependencies separately.
+## Current architecture
+- Active user-facing direct HTTP/HTTPS path remains Android DownloadManager.
+- Link analyzer, SQLite metadata, share-to-app, download list, basic retry/cancel and M1RAI DOWNLOADS destination path exist.
+- Experimental app-owned HTTP engine, persistence, partial-file/recovery, runner and publisher exist.
+- API 26–33 foreground service reports progress but is not yet connected to UI.
+- API 34+ JobInfo contract exists.
+- API 34+ UserInitiatedTransferJobService has now been added and registered with RUN_USER_INITIATED_JOBS and BIND_JOB_SERVICE. It executes the existing runner, sets the UIDT notification, pauses on onStopJob and returns reschedule=true. This is implementation only until CI and device tests pass.
+- No API-aware queue coordinator yet; do not switch the UI away from DownloadManager.
 
-## Current verified implementation
-- Active user-facing flow: direct HTTP/HTTPS via Android DownloadManager.
-- Link analyzer, SQLite metadata/history, share-to-app, download list, basic retry/cancel, destination naming.
-- Experimental app-owned HTTP engine, persistence, partial-file/recovery components, runner and publisher.
-- API 26–33 foreground service exists with progress/status notification but is NOT wired into the normal UI.
-- API 34+ JobInfo contract and SDK policy exist, but NO JobService is implemented or registered.
-- Current user-facing flow still has no general pause/resume, speed, or ETA.
+## Last previously verified CI
+Commit 44aec3102cfac1cd0bf143eb9db6fbbf6fa40ff7; run https://github.com/M1RAITV/M1RAI-DOWNLOAD-MANAGER/actions/runs/43433914500. Build, unit tests and APK artifact upload passed. Documentation commits #86–#89 also passed. No physical-device verification claimed.
 
-## Latest verified CI
-- Commit: 44aec3102cfac1cd0bf143eb9db6fbbf6fa40ff7
-- Run: https://github.com/M1RAITV/M1RAI-DOWNLOAD-MANAGER/actions/runs/43433914500
-- assembleDebug: passed; testDebugUnitTest: passed; debug APK upload: passed.
-- Artifact: m1rai-download-manager-debug.
-- Physical-device installation and behavior: NOT verified.
-
-## Next engineering task
-Implement and register the Android 14+ user-initiated data-transfer JobService with task ID validation, progress/status notification, and correct completion/failure lifecycle. Add tests. Then implement a single API-aware execution coordinator and connect it to the queue only after tests pass. Preserve the current DownloadManager path until the replacement is verified on physical devices.
-
-Before implementation, inspect the manifest, Gradle config, current foreground service, runner, persistence, execution policy, and tests. Check current official Android documentation for JobService and foreground-service restrictions. Never mistake the JobInfo contract for a functioning scheduled transfer.
+## Next task after this commit passes
+Add a single API-aware execution coordinator for API 26–33 foreground service, API 34+ UIDT job and API 21–25 DownloadManager fallback. Add tests. Keep existing user-facing DownloadManager path intact until routing and device tests are complete.
 
 ## Continuation
-On Next, resume from main and this handoff. Make progress directly where safe, update roadmap/handoff, run CI, and report the exact evidence and Actions link. Do not make the maintainer repeat project history.
+On Next, inspect latest main and CI first. Bundle source, tests, ROADMAP and this handoff into one commit, run CI once, and report evidence. Never make the maintainer repeat project history.

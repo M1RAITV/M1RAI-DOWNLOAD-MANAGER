@@ -1,44 +1,38 @@
 # M1RAI Download Manager
 
 ## Product direction
-- Android only; iOS is out of scope.
-- Local-first, no account required for ordinary downloads.
-- Premium dark/light UI; phone-first GitHub workflow with cloud builds.
-- Direct links and authorized media only; no DRM, paywall, private-access, or authentication bypass.
+- Android only; local-first Kotlin/Jetpack Compose.
+- Phone-first GitHub workflow with cloud builds.
+- Direct links and authorized media only. Never bypass DRM, paywalls, authentication, or private access.
 
-## Phase 0 — Foundation
-- [x] Preliminary Gopeed review (see docs/FOUNDATION-AUDIT.md).
-- [ ] Complete comparative foundation and dependency licence audit.
-- [x] Android-only Kotlin/Compose foundation and cloud-built direct-download prototype.
-- [ ] Document full architecture and conventions.
+## Delivery roadmap
+### Phase 0 — Foundation
+- [x] Android-only foundation and cloud-built direct-download prototype.
+- [ ] Complete dependency and foundation licence audit.
 
-## Phase 1 — Android MVP
-- [x] Direct-link Android shell and HTTP metadata analyzer.
-- [x] SQLite metadata store, share-to-app, destination naming, basic queue/status UI.
-- [x] Unit tests for URL rules, metadata, destination, transfer state/recovery, and HTTP range behavior.
-- [x] Cloud build, JVM tests, and debug APK artifact verified (commit 44aec3102cfac1cd0bf143eb9db6fbbf6fa40ff7; run 43433914500).
-- [ ] Complete robust user-facing pause/resume/retry and history integration.
+### Phase 1 — Android MVP
+- [x] Direct HTTP/HTTPS downloads through Android DownloadManager.
+- [x] Link analysis, SQLite metadata, share-to-app, queue/status UI.
+- [x] Unit tests and successful cloud debug build.
+- [ ] Finish robust user-facing pause/resume/retry and history.
 
-## Phase 2 — Transfer engine and polish
+### Phase 2 — Transfer engine
 - [x] Experimental app-owned HTTP engine, persistence, partial-file and recovery components.
-- [x] API 26–33 foreground service with progress/status notifications (not wired into UI).
-- [x] API 34+ JobInfo contract and SDK execution policy (contract only).
-- [ ] Implement/register Android 14+ user-initiated transfer JobService.
-- [ ] Add one API-aware execution coordinator and connect the normal queue flow.
-- [ ] Implement and verify pause/resume/cancel/retry lifecycle.
-- [ ] Physical-device tests on Android 8–13 and 14+; process death, network interruption, storage failure, large files.
-- [ ] Finalize accessible dark/light themes.
+- [x] API 26–33 foreground service with progress notifications (not connected to UI).
+- [x] API 34+ JobInfo contract.
+- [x] API 34+ JobService implementation and manifest registration (cloud CI verification pending).
+- [ ] Add API-aware coordinator and connect queue without replacing stable DownloadManager flow prematurely.
+- [ ] Device-test interruptions, process death, notification lifecycle, pause/resume and large files.
+- [ ] Finalize accessible dark/light UI.
 
-## Phase 3 — Authorized adapters
-- [ ] Modular adapters only for sources where downloading is permitted and technically supported.
-- [ ] Verify formats/quality per source; document limitations.
+### Phase 3 — Authorized adapters
+- [ ] Modular adapters only for permitted sources; verify each independently.
 
-## Phase 4 — Release
-- [ ] Security, privacy, dependency licence, and Play policy review.
-- [ ] Signed release, changelog, and store listing.
+### Phase 4 — Release
+- [ ] Security, privacy, dependency licence and Play policy review.
+- [ ] Signed release and store listing.
 
 ## Verified status
-Latest cloud run 43433914500 passed assembleDebug, testDebugUnitTest, and APK upload. This is a debug artifact only; no physical-device installation or end-to-end device test is claimed. The experimental engine is not integrated into the user-facing queue. Update checkboxes only with evidence.
+Last previously verified CI: commit 44aec3102cfac1cd0bf143eb9db6fbbf6fa40ff7, run 43433914500; build, JVM tests and debug APK upload passed. Documentation-only commits #86–#89 also passed. Physical-device testing is not claimed. New JobService work is pending CI and device verification.
 
-## Principles
-Preserve working behavior. Make minimal, evidence-based changes. A successful cloud build is not proof of device behavior or release readiness.
+Preserve working behavior. Make minimal, evidence-based changes. Cloud build success is not proof of device behavior or release readiness.

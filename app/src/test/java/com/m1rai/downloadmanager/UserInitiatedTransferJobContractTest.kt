@@ -15,7 +15,7 @@ import org.robolectric.annotation.Config
 @Config(sdk = [34])
 class UserInitiatedTransferJobContractTest {
     private val service: ComponentName
-        get() = ComponentName(ApplicationProvider.getApplicationContext<Context>(), "com.m1rai.downloadmanager.FutureTransferJobService")
+        get() = ComponentName(ApplicationProvider.getApplicationContext<Context>(), UserInitiatedTransferJobService::class.java)
 
     @Test fun buildsUserInitiatedNetworkTransferWithPersistedTaskIdentity() {
         val job = UserInitiatedTransferJobContract.build(1001, service, "task_123", 34)
