@@ -22,7 +22,8 @@
 - [x] API 34+ JobInfo contract.
 - [x] API 34+ JobService implementation and manifest registration (Build #90 passed; device verification pending).
 - [x] Corrected progress notification interpolation after source review; Build #91 verification pending.
-- [ ] Add API-aware coordinator and connect queue without replacing stable DownloadManager flow prematurely.
+- [x] Add API-aware execution coordinator and Android launcher adapter with routing tests (Build #92 verification pending).
+- [ ] Connect queue only after device verification; preserve stable DownloadManager flow until then.
 - [ ] Device-test interruptions, process death, notification lifecycle, pause/resume and large files.
 - [ ] Finalize accessible dark/light UI.
 

@@ -27,8 +27,11 @@
 ## Last previously verified CI
 Commit 44aec3102cfac1cd0bf143eb9db6fbbf6fa40ff7; run https://github.com/M1RAITV/M1RAI-DOWNLOAD-MANAGER/actions/runs/43433914500. Build, unit tests and APK artifact upload passed. Documentation commits #86–#89 also passed. No physical-device verification claimed.
 
+## Current execution-routing implementation
+`TransferExecutionCoordinator` now routes an already-persisted task by SDK: API 21–25 explicitly returns `LegacyDownloadManagerRequired` without touching the legacy flow; API 26–33 delegates to the existing foreground service; API 34+ schedules the registered UIDT JobService through JobScheduler. `AndroidTransferExecutionLauncher` derives a stable positive job ID and checks pending-job task identity before scheduling. Unit tests cover all SDK ranges, rejected scheduling, platform exceptions, and invalid task IDs. Build #92 is the verification run. This coordinator is not yet connected to the UI; no user-facing flow was switched.
+
 ## Next task after this commit passes
-Add a single API-aware execution coordinator for API 26–33 foreground service, API 34+ UIDT job and API 21–25 DownloadManager fallback. Add tests. Keep existing user-facing DownloadManager path intact until routing and device tests are complete.
+Review lifecycle and recovery behavior (especially JobService stop/retry and foreground-service cancellation), then add focused tests or fixes. Only after device verification should the normal queue flow be connected to this coordinator.
 
 ## Continuation
 On Next, inspect latest main and CI first. Bundle source, tests, ROADMAP and this handoff into one commit, run CI once, and report evidence. Never make the maintainer repeat project history.
