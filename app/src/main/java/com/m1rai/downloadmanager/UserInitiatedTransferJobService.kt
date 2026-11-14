@@ -126,8 +126,8 @@ internal class UserInitiatedTransferJobService : JobService() {
 
     private fun progressMessage(progress: TransferProgress): String {
         val total = progress.totalBytes?.takeIf { it > 0L }
-        return if (total != null) "\${sizeText(progress.downloadedBytes)} of \${sizeText(total)}"
-        else "\${sizeText(progress.downloadedBytes)} downloaded"
+        return if (total != null) "${sizeText(progress.downloadedBytes)} of ${sizeText(total)}"
+        else "${sizeText(progress.downloadedBytes)} downloaded"
     }
 
     private fun createNotificationChannel() {

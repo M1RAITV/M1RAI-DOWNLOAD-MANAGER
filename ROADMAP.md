@@ -20,7 +20,8 @@
 - [x] Experimental app-owned HTTP engine, persistence, partial-file and recovery components.
 - [x] API 26–33 foreground service with progress notifications (not connected to UI).
 - [x] API 34+ JobInfo contract.
-- [x] API 34+ JobService implementation and manifest registration (cloud CI verification pending).
+- [x] API 34+ JobService implementation and manifest registration (Build #90 passed; device verification pending).
+- [x] Corrected progress notification interpolation after source review; Build #91 verification pending.
 - [ ] Add API-aware coordinator and connect queue without replacing stable DownloadManager flow prematurely.
 - [ ] Device-test interruptions, process death, notification lifecycle, pause/resume and large files.
 - [ ] Finalize accessible dark/light UI.

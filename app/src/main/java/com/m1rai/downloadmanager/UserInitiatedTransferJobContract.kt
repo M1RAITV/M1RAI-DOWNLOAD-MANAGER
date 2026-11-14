@@ -6,8 +6,8 @@ import android.os.Build
 import android.os.PersistableBundle
 
 /**
- * Constructs the Android 14+ scheduling specification only.
- * No JobService is registered or scheduled by this contract.
+ * Constructs the Android 14+ scheduling specification for the registered
+ * UserInitiatedTransferJobService. Scheduling is performed by the execution coordinator.
  */
 internal object UserInitiatedTransferJobContract {
     const val EXTRA_TASK_ID = "engine_transfer_task_id"
